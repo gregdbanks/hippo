@@ -18,9 +18,9 @@ pub fn run() {
                 )?;
             }
 
-            // Hide dock icon on macOS — pure menu bar app
-            #[cfg(target_os = "macos")]
-            app.set_activation_policy(tauri::ActivationPolicy::Accessory);
+            // Show in dock for now — switch to Accessory to hide dock icon
+            // #[cfg(target_os = "macos")]
+            // app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             // Build tray context menu
             let quit = MenuItemBuilder::with_id("quit", "Quit Claude Config").build(app)?;
@@ -88,6 +88,8 @@ pub fn run() {
             commands::settings::read_settings,
             commands::settings::write_settings,
             commands::memories::get_memories,
+            commands::memories::create_memory,
+            commands::memories::sync_memory_index,
             commands::docs::list_docs,
         ])
         .run(tauri::generate_context!())
