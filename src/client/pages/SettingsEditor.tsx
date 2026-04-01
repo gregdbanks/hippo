@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { fetchJson, putJson } from '../lib/api';
+import { invoke } from '@tauri-apps/api/core';
 
 interface SettingsData {
   content: string;
@@ -16,7 +16,7 @@ export default function SettingsEditor() {
   const [dirty, setDirty] = useState(false);
 
   useEffect(() => {
-    fetchJson<SettingsData>('/settings')
+    invoke<SettingsData>('read_settings')
       .then(data => {
         setContent(JSON.stringify(JSON.parse(data.content), null, 2));
         setLoading(false);
@@ -43,7 +43,7 @@ export default function SettingsEditor() {
     setSaving(true);
     setSaved(false);
     try {
-      await putJson('/settings', { content });
+      await invoke('write_settings', { content });
       setSaved(true);
       setDirty(false);
       setTimeout(() => setSaved(false), 2000);

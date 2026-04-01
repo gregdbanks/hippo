@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
-import { fetchJson, deleteJson } from '../lib/api';
+import { invoke } from '@tauri-apps/api/core';
 import { useDiscovery } from '../hooks/useDiscovery';
 import type { MemoryHealth } from '../hooks/useDiscovery';
 
@@ -42,7 +42,7 @@ export default function MemoryBrowser() {
     if (!slug) return;
     setLoading(true);
     try {
-      const data = await fetchJson<MemoryInfo[]>(`/memories/${encodeURIComponent(slug)}`);
+      const data = await invoke<MemoryInfo[]>('get_memories', { slug });
       setMemories(data);
       setError(null);
     } catch (err) {
@@ -57,7 +57,7 @@ export default function MemoryBrowser() {
   const handleDelete = async (memory: MemoryInfo) => {
     if (!confirm(`Delete "${memory.name}"? This cannot be undone.`)) return;
     try {
-      await deleteJson(`/file?path=${encodeURIComponent(memory.path)}`);
+      await invoke('delete_file', { path: memory.path });
       await load();
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Failed to delete');

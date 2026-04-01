@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchJson, putJson } from '../lib/api';
+import { invoke } from '@tauri-apps/api/core';
 
 interface FileData {
   content: string;
@@ -20,11 +20,11 @@ export function useFile(filePath: string | null) {
     setLoading(true);
     setSaved(false);
     try {
-      const result = await fetchJson<FileData>(`/file?path=${encodeURIComponent(filePath)}`);
+      const result = await invoke<FileData>('read_file', { path: filePath });
       setData(result);
       setError(null);
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to load');
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setLoading(false);
     }
@@ -37,12 +37,12 @@ export function useFile(filePath: string | null) {
     setSaving(true);
     setSaved(false);
     try {
-      await putJson(`/file?path=${encodeURIComponent(filePath)}`, { content });
+      await invoke('write_file', { path: filePath, content });
       setSaved(true);
       setTimeout(() => setSaved(false), 2000);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to save');
+      setError(err instanceof Error ? err.message : String(err));
     } finally {
       setSaving(false);
     }
