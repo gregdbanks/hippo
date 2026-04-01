@@ -91,6 +91,9 @@ pub fn run() {
             commands::memories::create_memory,
             commands::memories::sync_memory_index,
             commands::docs::list_docs,
+            commands::sync::export_config,
+            commands::sync::import_config,
+            commands::sync::get_portable_status,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");
