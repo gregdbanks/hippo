@@ -11,6 +11,7 @@ These are the high-impact tools that power our development workflow. They're esp
 ### Playwright CLI
 - **What:** Browser automation, E2E testing, screenshots, visual verification
 - **Install:** `npm install -g @playwright/cli`
+- **Auth:** *None required — no secrets, no tokens. Works immediately after install.*
 - **Why it matters:** Lets the agent see what users see. Screenshots, form interactions, visual regression testing — all without a human watching the browser.
 - **Key uses:**
   - E2E tests that mirror real user behavior (clicks, keyboard, navigation)
@@ -21,6 +22,13 @@ These are the high-impact tools that power our development workflow. They're esp
 ### GitHub CLI (`gh`)
 - **What:** GitHub operations from the terminal — PRs, issues, checks, releases
 - **Install:** `brew install gh`
+- ***AUTH REQUIRED — OAuth token stored in macOS Keyring***
+  - **Setup:** `gh auth login` (interactive browser OAuth flow)
+  - **Token location:** macOS Keyring (not a file — managed by the OS keychain)
+  - **Config files:** `~/.config/gh/hosts.yml` (account info), `~/.config/gh/config.yml` (preferences)
+  - **Token scopes:** `gist`, `read:org`, `repo`, `workflow`
+  - **Verify:** `gh auth status`
+  - **On a new machine:** Must run `gh auth login` again — token does not transfer via dotfiles
 - **Why it matters:** Full GitHub workflow without leaving the terminal. Agents can create PRs, check CI status, comment on issues, and merge — all autonomously.
 - **Key uses:**
   - `gh pr create` / `gh pr merge` — PR lifecycle
@@ -31,6 +39,14 @@ These are the high-impact tools that power our development workflow. They're esp
 ### AWS CLI
 - **What:** Manage all AWS services from the terminal
 - **Install:** `brew install awscli`
+- ***AUTH REQUIRED — Access key + secret key in credentials file***
+  - **Setup:** `aws configure` (prompts for access key, secret key, region)
+  - **Credentials file:** `~/.aws/credentials` (contains `aws_access_key_id` and `aws_secret_access_key`)
+  - **Config file:** `~/.aws/config` (region, output format)
+  - **SSO config:** `~/.aws/sso/` (if using AWS SSO login)
+  - **Region:** `us-east-1`
+  - **Verify:** `aws sts get-caller-identity`
+  - **On a new machine:** Must run `aws configure` or copy `~/.aws/credentials` + `~/.aws/config`. ***Never commit these files to git.***
 - **Why it matters:** Infrastructure management, deployments, debugging — without clicking through the console. Critical for our AWS stack (Amplify, Bedrock, Cognito, S3).
 - **Key uses:**
   - Amplify deployments and environment management
@@ -107,10 +123,12 @@ These are the high-impact tools that power our development workflow. They're esp
 
 ### Docker / Docker Compose
 - **What:** Container management and orchestration
+- **Auth:** *Docker Desktop license required for commercial use. Docker Hub login optional — `~/.docker/config.json` stores registry credentials if logged in.*
 - **Key uses:** Local development environments, service isolation, database containers
 
 ### psql
 - **What:** PostgreSQL command-line client
+- **Auth:** *Connection credentials passed via command flags or `~/.pgpass` file. Database passwords are typically in `.env` files per service — never committed to git.*
 - **Key uses:** Direct database queries, migrations, debugging
 
 ### nvm

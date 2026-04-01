@@ -5,6 +5,7 @@ import Editor from './pages/Editor';
 import MemoryBrowser from './pages/MemoryBrowser';
 import SkillsBrowser from './pages/SkillsBrowser';
 import SettingsEditor from './pages/SettingsEditor';
+import DocsBrowser from './pages/DocsBrowser';
 
 export default function App() {
   const { data, loading, error, refresh } = useDiscovery();
@@ -35,6 +36,9 @@ export default function App() {
           <NavLink to="/skills" className={({ isActive }) => isActive ? 'active' : ''}>
             Skills ({data?.skills.length || 0})
           </NavLink>
+          <NavLink to="/docs" className={({ isActive }) => isActive ? 'active' : ''}>
+            Docs
+          </NavLink>
 
           {data && data.projects.length > 0 && (
             <>
@@ -63,6 +67,7 @@ export default function App() {
           <Route path="/memories/:slug" element={<MemoryBrowser />} />
           <Route path="/skills" element={<SkillsBrowser data={data} />} />
           <Route path="/settings" element={<SettingsEditor />} />
+          <Route path="/docs" element={<DocsBrowser />} />
         </Routes>
       </main>
     </div>
