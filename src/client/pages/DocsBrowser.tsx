@@ -55,10 +55,27 @@ function MarkdownPreview({ content }: { content: string }) {
   };
 
   const formatInline = (text: string) => {
+    // Bold-italic with AUTH/REQUIRED/NEVER — render as red warning
+    text = text.replace(
+      /\*\*\*(.*?)\*\*\*/g,
+      (_, content) => {
+        const isWarning = /auth|required|never|secret|credential|token|key/i.test(content);
+        if (isWarning) {
+          return `<span style="color:#e74c3c;font-weight:700;font-style:italic;background:rgba(231,76,60,0.1);padding:0.15rem 0.5rem;border-radius:4px;border-left:3px solid #e74c3c;display:inline-block;margin:0.25rem 0">${content}</span>`;
+        }
+        return `<strong><em>${content}</em></strong>`;
+      }
+    );
     // Bold
     text = text.replace(/\*\*(.*?)\*\*/g, '<strong>$1</strong>');
-    // Italic
-    text = text.replace(/\*(.*?)\*/g, '<em>$1</em>');
+    // Italic — auth-related italics also get red
+    text = text.replace(/\*(.*?)\*/g, (_, content) => {
+      const isAuthNote = /auth|no secrets|no token|none required|never commit/i.test(content);
+      if (isAuthNote) {
+        return `<em style="color:#e74c3c;font-weight:600">${content}</em>`;
+      }
+      return `<em>${content}</em>`;
+    });
     // Inline code
     text = text.replace(/`(.*?)`/g, '<code style="background:#252a3a;padding:0.1rem 0.3rem;border-radius:3px;font-size:0.85em">$1</code>');
     return <span dangerouslySetInnerHTML={{ __html: text }} />;
