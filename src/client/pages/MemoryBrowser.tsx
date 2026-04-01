@@ -37,6 +37,9 @@ export default function MemoryBrowser() {
   const [error, setError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'modified' | 'name' | 'tokens'>('modified');
+  const [showCreate, setShowCreate] = useState(false);
+  const [newMemory, setNewMemory] = useState({ filename: '', name: '', description: '', memoryType: 'feedback', body: '' });
+  const [creating, setCreating] = useState(false);
 
   const load = useCallback(async () => {
     if (!slug) return;
@@ -53,6 +56,39 @@ export default function MemoryBrowser() {
   }, [slug]);
 
   useEffect(() => { load(); }, [load]);
+
+  const handleCreate = async () => {
+    if (!slug || !newMemory.filename || !newMemory.name) return;
+    setCreating(true);
+    try {
+      await invoke('create_memory', {
+        input: {
+          slug,
+          filename: newMemory.filename,
+          name: newMemory.name,
+          description: newMemory.description,
+          memoryType: newMemory.memoryType,
+          body: newMemory.body || `${newMemory.description}`,
+        },
+      });
+      setNewMemory({ filename: '', name: '', description: '', memoryType: 'feedback', body: '' });
+      setShowCreate(false);
+      await load();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setCreating(false);
+    }
+  };
+
+  const handleSyncIndex = async () => {
+    if (!slug) return;
+    try {
+      await invoke('sync_memory_index', { slug });
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    }
+  };
 
   const handleDelete = async (memory: MemoryInfo) => {
     if (!confirm(`Delete "${memory.name}"? This cannot be undone.`)) return;
@@ -88,12 +124,84 @@ export default function MemoryBrowser() {
 
   return (
     <>
-      <h1>Memories: {projectName}</h1>
-      <p className="page-subtitle">
-        {memories.length} memories, ~{totalTokens.toLocaleString()} tokens total
-        {staleCount > 0 && <span style={{ color: 'var(--color-stale)', marginLeft: '1rem' }}>{staleCount} stale</span>}
-        {reviewCount > 0 && <span style={{ color: 'var(--color-review)', marginLeft: '1rem' }}>{reviewCount} needs review</span>}
-      </p>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+        <div>
+          <h1>Memories: {projectName}</h1>
+          <p className="page-subtitle">
+            {memories.length} memories, ~{totalTokens.toLocaleString()} tokens total
+            {staleCount > 0 && <span style={{ color: 'var(--color-stale)', marginLeft: '1rem' }}>{staleCount} stale</span>}
+            {reviewCount > 0 && <span style={{ color: 'var(--color-review)', marginLeft: '1rem' }}>{reviewCount} needs review</span>}
+          </p>
+        </div>
+        <div style={{ display: 'flex', gap: '0.5rem' }}>
+          <button className="btn btn-ghost" onClick={handleSyncIndex}>Sync Index</button>
+          <button className="btn btn-primary" onClick={() => setShowCreate(!showCreate)}>
+            {showCreate ? 'Cancel' : 'New Memory'}
+          </button>
+        </div>
+      </div>
+
+      {showCreate && (
+        <div className="editor-container" style={{ marginBottom: '1.5rem' }}>
+          <div className="editor-header">
+            <span style={{ fontWeight: 600, color: '#fff' }}>Create New Memory</span>
+          </div>
+          <div className="frontmatter-fields">
+            <div>
+              <label>Filename (without .md)</label>
+              <input
+                value={newMemory.filename}
+                onChange={e => setNewMemory({ ...newMemory, filename: e.target.value })}
+                placeholder="feedback_my_rule"
+              />
+            </div>
+            <div>
+              <label>Name</label>
+              <input
+                value={newMemory.name}
+                onChange={e => setNewMemory({ ...newMemory, name: e.target.value })}
+                placeholder="Human-readable name"
+              />
+            </div>
+            <div>
+              <label>Type</label>
+              <select
+                value={newMemory.memoryType}
+                onChange={e => setNewMemory({ ...newMemory, memoryType: e.target.value })}
+              >
+                <option value="feedback">feedback</option>
+                <option value="project">project</option>
+                <option value="user">user</option>
+                <option value="reference">reference</option>
+              </select>
+            </div>
+            <div>
+              <label>Description (one-line)</label>
+              <input
+                value={newMemory.description}
+                onChange={e => setNewMemory({ ...newMemory, description: e.target.value })}
+                placeholder="Brief description for the index"
+              />
+            </div>
+          </div>
+          <textarea
+            className="editor-textarea"
+            style={{ minHeight: '120px' }}
+            value={newMemory.body}
+            onChange={e => setNewMemory({ ...newMemory, body: e.target.value })}
+            placeholder="Memory content (markdown)..."
+          />
+          <div className="editor-footer">
+            <button
+              className="btn btn-primary"
+              onClick={handleCreate}
+              disabled={creating || !newMemory.filename || !newMemory.name}
+            >
+              {creating ? 'Creating...' : 'Create Memory'}
+            </button>
+          </div>
+        </div>
+      )}
 
       {projectHealth && (
         <div style={{

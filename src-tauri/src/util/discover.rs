@@ -139,17 +139,11 @@ fn get_memory_staleness(mem_type: &str, modified: SystemTime) -> String {
 fn calculate_memory_health(
     memory_count: usize,
     memory_total_tokens: usize,
-    memory_index: &Option<FileInfo>,
+    index_line_count: usize,
     stale_count: usize,
     review_count: usize,
     total_prompt_tokens: usize,
 ) -> MemoryHealth {
-    let mut index_line_count = 0;
-    if let Some(idx) = memory_index {
-        if let Ok(content) = fs::read_to_string(&idx.path) {
-            index_line_count = content.lines().filter(|l| !l.trim().is_empty()).count();
-        }
-    }
 
     let token_budget_pct = if total_prompt_tokens > 0 {
         (memory_total_tokens * 100) / total_prompt_tokens
@@ -261,6 +255,7 @@ fn discover_projects() -> Vec<ProjectInfo> {
         let mut memory_count = 0;
         let mut memory_total_tokens = 0;
         let mut memory_index: Option<FileInfo> = None;
+        let mut index_line_count = 0;
         let mut stale_count = 0;
         let mut review_count = 0;
 
@@ -275,25 +270,27 @@ fn discover_projects() -> Vec<ProjectInfo> {
 
                     if fname == "MEMORY.md" {
                         memory_index = get_file_info(&mem_path);
-                    } else {
+                        // Count lines once here, avoid re-reading in health calc
                         if let Ok(content) = fs::read_to_string(&mem_path) {
-                            memory_count += 1;
-                            memory_total_tokens += estimate_tokens(&content);
+                            index_line_count = content.lines().filter(|l| !l.trim().is_empty()).count();
+                        }
+                    } else if let Ok(content) = fs::read_to_string(&mem_path) {
+                        memory_count += 1;
+                        memory_total_tokens += estimate_tokens(&content);
 
-                            if let Ok(meta) = fs::metadata(&mem_path) {
-                                if let Ok(modified) = meta.modified() {
-                                    let parsed = parse_frontmatter(&content);
-                                    let mem_type = parsed
-                                        .frontmatter
-                                        .get("type")
-                                        .cloned()
-                                        .unwrap_or_else(|| "unknown".to_string());
-                                    let staleness = get_memory_staleness(&mem_type, modified);
-                                    if staleness == "stale" {
-                                        stale_count += 1;
-                                    } else if staleness == "review" {
-                                        review_count += 1;
-                                    }
+                        if let Ok(meta) = fs::metadata(&mem_path) {
+                            if let Ok(modified) = meta.modified() {
+                                let parsed = parse_frontmatter(&content);
+                                let mem_type = parsed
+                                    .frontmatter
+                                    .get("type")
+                                    .cloned()
+                                    .unwrap_or_else(|| "unknown".to_string());
+                                let staleness = get_memory_staleness(&mem_type, modified);
+                                if staleness == "stale" {
+                                    stale_count += 1;
+                                } else if staleness == "review" {
+                                    review_count += 1;
                                 }
                             }
                         }
@@ -302,35 +299,35 @@ fn discover_projects() -> Vec<ProjectInfo> {
             }
         }
 
+        let claude_md = get_file_info(&project_claude_md);
+
+        // Health uses THIS project's token budget, not a global aggregate
+        let project_total = claude_md.as_ref().map(|f| f.tokens).unwrap_or(0)
+            + memory_index.as_ref().map(|f| f.tokens).unwrap_or(0)
+            + memory_total_tokens;
+
+        let memory_health = if memory_count > 0 {
+            Some(calculate_memory_health(
+                memory_count,
+                memory_total_tokens,
+                index_line_count,
+                stale_count,
+                review_count,
+                project_total, // per-project baseline, global tokens added in discover()
+            ))
+        } else {
+            None
+        };
+
         projects.push(ProjectInfo {
             slug,
             real_path: real_path.to_string_lossy().to_string(),
-            claude_md: get_file_info(&project_claude_md),
-            memory_index: memory_index.clone(),
+            claude_md,
+            memory_index,
             memory_count,
             memory_total_tokens,
-            memory_health: None, // Filled in after totals
+            memory_health,
         });
-
-        // Store staleness counts temporarily for health calculation
-        // We'll recalculate in discover() after totals are known
-        if let Some(last) = projects.last_mut() {
-            let global_tokens = 0; // placeholder, calculated in discover()
-            let project_total =
-                global_tokens
-                    + last.claude_md.as_ref().map(|f| f.tokens).unwrap_or(0)
-                    + last.memory_index.as_ref().map(|f| f.tokens).unwrap_or(0)
-                    + memory_total_tokens;
-
-            last.memory_health = Some(calculate_memory_health(
-                memory_count,
-                memory_total_tokens,
-                &memory_index,
-                stale_count,
-                review_count,
-                project_total,
-            ));
-        }
     }
 
     projects
@@ -468,19 +465,26 @@ pub fn discover() -> DiscoveryResult {
 
     let global_tokens = global_claude.as_ref().map(|f| f.tokens).unwrap_or(0);
 
-    // Recalculate memory health with global tokens included
+    // Recalculate token budget % with global tokens included
     for p in &mut projects {
-        let project_total = global_tokens
-            + p.claude_md.as_ref().map(|f| f.tokens).unwrap_or(0)
-            + p.memory_index.as_ref().map(|f| f.tokens).unwrap_or(0)
-            + p.memory_total_tokens;
-
         if let Some(ref mut health) = p.memory_health {
-            health.token_budget_pct = if project_total > 0 {
-                (p.memory_total_tokens * 100) / project_total
+            let full_prompt_tokens = global_tokens
+                + p.claude_md.as_ref().map(|f| f.tokens).unwrap_or(0)
+                + p.memory_index.as_ref().map(|f| f.tokens).unwrap_or(0)
+                + p.memory_total_tokens;
+            health.token_budget_pct = if full_prompt_tokens > 0 {
+                (p.memory_total_tokens * 100) / full_prompt_tokens
             } else {
                 0
             };
+            // Recalculate suggestions for token budget with global context
+            if health.token_budget_pct > 50 {
+                health.suggestions.retain(|s| !s.contains("% of your prompt context"));
+                health.suggestions.push(format!(
+                    "Memories use {}% of your prompt context. Consider consolidating or removing low-value entries.",
+                    health.token_budget_pct
+                ));
+            }
         }
     }
 
