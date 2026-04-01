@@ -6,6 +6,7 @@ import discoveryRouter from './routes/discovery.js';
 import filesRouter from './routes/files.js';
 import memoriesRouter from './routes/memories.js';
 import settingsRouter from './routes/settings.js';
+import docsRouter from './routes/docs.js';
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const app = express();
@@ -19,6 +20,7 @@ app.use('/api', discoveryRouter);
 app.use('/api', filesRouter);
 app.use('/api', memoriesRouter);
 app.use('/api', settingsRouter);
+app.use('/api', docsRouter);
 
 // Serve static frontend in production
 const clientDist = path.join(__dirname, '..', 'dist', 'client');

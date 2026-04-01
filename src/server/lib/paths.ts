@@ -2,6 +2,11 @@ import os from 'os';
 import path from 'path';
 import fs from 'fs';
 
+import { fileURLToPath } from 'url';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = path.dirname(__filename);
+
 export const HOME_DIR = os.homedir();
 export const CLAUDE_DIR = path.join(HOME_DIR, '.claude');
 export const GLOBAL_CLAUDE_MD = path.join(HOME_DIR, 'CLAUDE.md');
@@ -9,6 +14,7 @@ export const SETTINGS_PATH = path.join(CLAUDE_DIR, 'settings.json');
 export const PROJECTS_DIR = path.join(CLAUDE_DIR, 'projects');
 export const SKILLS_DIR = path.join(CLAUDE_DIR, 'skills');
 export const PLANS_DIR = path.join(CLAUDE_DIR, 'plans');
+export const REPO_ROOT = path.resolve(__dirname, '..', '..', '..');
 
 const WRITABLE_PREFIXES = [
   path.join(CLAUDE_DIR, 'projects'),
@@ -16,6 +22,7 @@ const WRITABLE_PREFIXES = [
   path.join(CLAUDE_DIR, 'plans'),
   SETTINGS_PATH,
   GLOBAL_CLAUDE_MD,
+  REPO_ROOT,
 ];
 
 export function decodeProjectSlug(slug: string): string {
