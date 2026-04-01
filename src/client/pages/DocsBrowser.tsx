@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { useSearchParams, Link } from 'react-router-dom';
-import { fetchJson } from '../lib/api';
+import { invoke } from '@tauri-apps/api/core';
 import { useFile } from '../hooks/useFile';
 
 interface DocInfo {
@@ -177,7 +177,7 @@ export default function DocsBrowser() {
   const fileData = useFile(viewPath);
 
   useEffect(() => {
-    fetchJson<DocInfo[]>('/docs').then(d => { setDocs(d); setLoading(false); }).catch(() => setLoading(false));
+    invoke<DocInfo[]>('list_docs').then(d => { setDocs(d); setLoading(false); }).catch(() => setLoading(false));
   }, []);
 
   if (viewPath) {

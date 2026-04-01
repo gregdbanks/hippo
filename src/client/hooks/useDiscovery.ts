@@ -1,5 +1,5 @@
 import { useState, useEffect, useCallback } from 'react';
-import { fetchJson } from '../lib/api';
+import { invoke } from '@tauri-apps/api/core';
 
 export interface FileInfo {
   path: string;
@@ -70,7 +70,7 @@ export function useDiscovery() {
   const refresh = useCallback(async () => {
     setLoading(true);
     try {
-      const result = await fetchJson<DiscoveryResult>('/discovery');
+      const result = await invoke<DiscoveryResult>('discover');
       setData(result);
       setError(null);
     } catch (err) {
