@@ -26,7 +26,7 @@
   },
   "plugins": {
     "updater": {
-      "pubkey": "REPLACE_WITH_PUBLIC_KEY",
+      "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU3NEQ2N0FBNDQwMzVBN0YKUldSL1dnTkVxbWRONTZheis5RTZsUXEweHdDQzdNK0c0Z1dLM01RQWRFcHB1Y2lyWUNWVjhsa0oK",
       "endpoints": [
         "https://gist.githubusercontent.com/gregdbanks/REPLACE_WITH_GIST_ID/raw/update.json"
       ]
