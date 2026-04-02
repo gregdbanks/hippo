@@ -1,5 +1,6 @@
 import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
 import { useDiscovery } from './hooks/useDiscovery';
+import { UpdateBanner } from './components/UpdateBanner';
 import Dashboard from './pages/Dashboard';
 import Editor from './pages/Editor';
 import MemoryBrowser from './pages/MemoryBrowser';
@@ -71,11 +72,12 @@ export default function App() {
       </aside>
 
       <main className="main-content">
+        <UpdateBanner />
         <Routes>
           <Route path="/" element={<Dashboard data={data} loading={loading} error={error} refresh={refresh} />} />
           <Route path="/edit" element={<Editor />} />
           <Route path="/memories/:slug" element={<MemoryBrowser />} />
-          <Route path="/skills" element={<SkillsBrowser data={data} />} />
+          <Route path="/skills" element={<SkillsBrowser data={data} refresh={refresh} />} />
           <Route path="/settings" element={<SettingsEditor />} />
           <Route path="/docs" element={<DocsBrowser />} />
           <Route path="/sync" element={<SyncPage />} />
