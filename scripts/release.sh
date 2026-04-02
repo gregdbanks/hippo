@@ -18,9 +18,7 @@ sed -i '' "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml
 # Build
 export TAURI_SIGNING_PRIVATE_KEY=$(cat ~/.tauri/claude-config.key)
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
-npm run vite:build
-cd src-tauri && cargo tauri build
-cd ..
+npx tauri build
 
 # Show artifacts
 echo ""
