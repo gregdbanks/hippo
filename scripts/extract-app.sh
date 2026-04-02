@@ -1,6 +1,7 @@
 #!/bin/bash
 # Extract .app from DMG after build so the desktop shortcut stays current
-DMG="src-tauri/target/release/bundle/dmg/Claude Config_0.1.0_aarch64.dmg"
+VERSION=$(grep '"version"' src-tauri/tauri.conf.json | head -1 | sed 's/.*: "\(.*\)".*/\1/')
+DMG="src-tauri/target/release/bundle/dmg/Claude Config_${VERSION}_aarch64.dmg"
 APP_DEST="Claude Config.app"
 
 if [ ! -f "$DMG" ]; then
