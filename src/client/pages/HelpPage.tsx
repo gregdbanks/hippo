@@ -416,6 +416,52 @@ export default function HelpPage() {
           <p>This is the key difference from CLAUDE.md — put specialized, rarely-used workflows in skills instead of global instructions. Your prompt context stays lean.</p>
         </Accordion>
 
+        <Accordion title="Skill Pipelines" icon="&#9654;" iconColor={PURPLE}>
+          <p>Some skills are designed to run in sequence as a pipeline. Each skill in a pipeline reads the output of the previous one (via GitHub issues) and builds on it.</p>
+
+          <h4 style={{ color: WHITE, fontSize: '0.85rem', marginTop: '1rem' }}>Design Pipeline</h4>
+          <p style={{ fontSize: '0.8rem', color: TEXT_DIM }}>
+            Elevates an entire app's UI to professional quality using the <Code>@studybuddy/ui</Code> design system.
+            Each skill is <strong style={{ color: WHITE }}>granular by concern, app-wide in scope</strong>.
+          </p>
+
+          <Steps steps={[
+            { title: '/design-system-audit (optional)', desc: 'Are apps actually using @studybuddy/ui? Finds local reimplementations, missing imports, token violations. Creates adoption issue.' },
+            { title: '/design-audit', desc: 'Reads the whole app against tokens.css. Screenshots key pages. Creates a master GitHub issue with every deviation categorized.' },
+            { title: '/design-typography', desc: 'Reads the audit issue. Applies the --sb-text-* type scale across every file. Fixes in packages/ui first, then app-level.' },
+            { title: '/design-color', desc: 'Reads the audit issue. Applies the --sb-color-* palette across every file. Converts hardcoded values to tokens.' },
+            { title: '/design-spacing', desc: 'Reads the audit issue. Applies the --sb-space-* grid across every file. Fixes visual hierarchy through whitespace.' },
+            { title: '/design-polish', desc: 'Reads the audit issue. Adds hover states, focus rings, transitions using --sb-duration-* and --sb-ease-*. Closes the issue.' },
+          ]} />
+
+          <h4 style={{ color: WHITE, fontSize: '0.85rem', marginTop: '1rem' }}>How it works</h4>
+          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', margin: '0.75rem 0' }}>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
+              <div style={{ color: PURPLE, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>GitHub Issues as thread</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>The audit creates the issue. Each fix skill reads it, checks off items, and commits with <Code>refs #ISSUE</Code>.</div>
+            </div>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
+              <div style={{ color: GREEN, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>Design system aware</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Every skill reads <Code>tokens.css</Code> and fixes in <Code>packages/ui</Code> first — the shared library is the source of truth.</div>
+            </div>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
+              <div style={{ color: ORANGE, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>Visual verification</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Each skill takes Playwright screenshots before and after. No "trust me it looks better."</div>
+            </div>
+            <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
+              <div style={{ color: ACCENT, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>One at a time</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Run each skill in its own session. Each is a full app-wide pass for one concern.</div>
+            </div>
+          </div>
+
+          <div style={{ background: `${PURPLE}10`, borderRadius: 6, padding: '0.75rem', borderLeft: `3px solid ${PURPLE}`, marginTop: '0.75rem' }}>
+            <div style={{ color: PURPLE, fontWeight: 600, fontSize: '0.8rem' }}>Why this order?</div>
+            <div style={{ color: TEXT_DIM, fontSize: '0.78rem', marginTop: '0.25rem' }}>
+              Typography first (affects layout). Color second (biggest visual impact, independent of layout). Spacing third (now that type is settled). Polish last (interaction states on top of the final visual foundation).
+            </div>
+          </div>
+        </Accordion>
+
         <Accordion title="Docs" icon="&#9776;" iconColor={ACCENT}>
           <p>Markdown files in this repo rendered with formatting. Use for reference material like CLI tools, architecture notes, or onboarding docs. Click "Edit" to modify, "View" to read.</p>
         </Accordion>
