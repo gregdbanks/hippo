@@ -90,13 +90,18 @@ export default function MemoryBrowser() {
     }
   };
 
-  const handleDelete = async (memory: MemoryInfo) => {
-    if (!confirm(`Delete "${memory.name}"? This cannot be undone.`)) return;
+  const [pendingDelete, setPendingDelete] = useState<MemoryInfo | null>(null);
+
+  const confirmDelete = async () => {
+    if (!pendingDelete) return;
     try {
-      await invoke('delete_file', { path: memory.path });
+      await invoke('delete_file', { path: pendingDelete.path });
+      setPendingDelete(null);
       await load();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
+      const msg = typeof err === 'string' ? err : err instanceof Error ? err.message : 'Failed to delete';
+      setError(msg);
+      setPendingDelete(null);
     }
   };
 
@@ -307,7 +312,7 @@ export default function MemoryBrowser() {
                 <button
                   className="btn btn-danger"
                   style={{ fontSize: '0.75rem', padding: '0.25rem 0.5rem' }}
-                  onClick={() => handleDelete(m)}
+                  onClick={() => setPendingDelete(m)}
                 >
                   Delete
                 </button>
@@ -319,6 +324,30 @@ export default function MemoryBrowser() {
 
       {filtered.length === 0 && (
         <div className="loading">No memories match the current filter</div>
+      )}
+
+      {pendingDelete && (
+        <div style={{
+          position: 'fixed', inset: 0, background: 'rgba(0,0,0,0.6)',
+          display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000,
+        }} onClick={() => setPendingDelete(null)}>
+          <div style={{
+            background: '#1a1f2e', border: '1px solid #2a2f3e', borderRadius: '12px',
+            padding: '1.5rem', maxWidth: '400px', width: '90%',
+          }} onClick={e => e.stopPropagation()}>
+            <h3 style={{ margin: '0 0 0.5rem', color: '#fff', fontSize: '1rem' }}>Delete memory?</h3>
+            <p style={{ color: '#8b8fa3', fontSize: '0.85rem', margin: '0 0 0.25rem' }}>
+              <strong style={{ color: '#c5c8d0' }}>{pendingDelete.name}</strong>
+            </p>
+            <p style={{ color: '#666', fontSize: '0.75rem', margin: '0 0 1.25rem', wordBreak: 'break-all' }}>
+              {pendingDelete.path}
+            </p>
+            <div style={{ display: 'flex', gap: '0.5rem', justifyContent: 'flex-end' }}>
+              <button className="btn btn-ghost" onClick={() => setPendingDelete(null)}>Cancel</button>
+              <button className="btn btn-danger" onClick={confirmDelete}>Delete</button>
+            </div>
+          </div>
+        </div>
       )}
     </>
   );

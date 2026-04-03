@@ -73,8 +73,10 @@ pub fn write_file(path: String, content: String) -> Result<FileWriteResult, Stri
 #[tauri::command]
 pub fn delete_file(path: String) -> Result<FileDeleteResult, String> {
     let p = Path::new(&path);
+    log::info!("[delete_file] path={}, exists={}, deletable={}", path, p.exists(), is_path_deletable(p));
     if !is_path_deletable(p) {
-        return Err("Path not deletable".to_string());
+        log::error!("[delete_file] REJECTED — path not in deletable allowlist: {}", path);
+        return Err(format!("Path not deletable: {}", path));
     }
 
     let filename = p
@@ -82,7 +84,12 @@ pub fn delete_file(path: String) -> Result<FileDeleteResult, String> {
         .map(|n| n.to_string_lossy().to_string())
         .unwrap_or_default();
 
-    fs::remove_file(p).map_err(|e| format!("File not found: {}", e))?;
+    log::info!("[delete_file] Removing file: {}", path);
+    fs::remove_file(p).map_err(|e| {
+        log::error!("[delete_file] Failed to remove: {} — {}", path, e);
+        format!("Failed to remove file: {}", e)
+    })?;
+    log::info!("[delete_file] Successfully removed: {}", path);
 
     // If this is a memory file, resync the MEMORY.md index
     if let Some(parent) = p.parent() {
