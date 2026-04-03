@@ -133,3 +133,116 @@ pub fn sync_memory_index_internal(memory_dir: &std::path::Path) -> Result<SyncIn
         entries: entry_count,
     })
 }
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use std::fs;
+    use tempfile::TempDir;
+
+    fn create_memory_file(dir: &std::path::Path, filename: &str, name: &str, description: &str) {
+        let content = format!(
+            "---\nname: {}\ndescription: {}\ntype: workflow\n---\n\nBody.",
+            name, description
+        );
+        fs::write(dir.join(filename), content).unwrap();
+    }
+
+    #[test]
+    fn test_sync_two_files_produces_two_entries() {
+        let tmp = TempDir::new().unwrap();
+        let memory_dir = tmp.path();
+
+        create_memory_file(memory_dir, "alpha.md", "Alpha", "First memory");
+        create_memory_file(memory_dir, "beta.md", "Beta", "Second memory");
+
+        let result = sync_memory_index_internal(memory_dir).unwrap();
+        assert_eq!(result.entries, 2);
+        assert!(result.synced);
+
+        let index = fs::read_to_string(memory_dir.join("MEMORY.md")).unwrap();
+        assert!(index.contains("# Memory Index"));
+        assert!(index.contains("[Alpha](alpha.md)"));
+        assert!(index.contains("[Beta](beta.md)"));
+        assert!(index.contains("First memory"));
+        assert!(index.contains("Second memory"));
+    }
+
+    #[test]
+    fn test_delete_file_then_resync_reduces_entries() {
+        let tmp = TempDir::new().unwrap();
+        let memory_dir = tmp.path();
+
+        create_memory_file(memory_dir, "keep.md", "Keep", "Stays");
+        create_memory_file(memory_dir, "remove.md", "Remove", "Goes away");
+
+        let result = sync_memory_index_internal(memory_dir).unwrap();
+        assert_eq!(result.entries, 2);
+
+        // Delete one file and resync
+        fs::remove_file(memory_dir.join("remove.md")).unwrap();
+        let result = sync_memory_index_internal(memory_dir).unwrap();
+        assert_eq!(result.entries, 1);
+
+        let index = fs::read_to_string(memory_dir.join("MEMORY.md")).unwrap();
+        assert!(index.contains("[Keep](keep.md)"));
+        assert!(!index.contains("Remove"));
+    }
+
+    #[test]
+    fn test_empty_directory_produces_header_only() {
+        let tmp = TempDir::new().unwrap();
+        let memory_dir = tmp.path();
+
+        let result = sync_memory_index_internal(memory_dir).unwrap();
+        assert_eq!(result.entries, 0);
+        assert!(result.synced);
+
+        let index = fs::read_to_string(memory_dir.join("MEMORY.md")).unwrap();
+        assert!(index.contains("# Memory Index"));
+        // No entry lines
+        assert!(!index.contains("- ["));
+    }
+
+    #[test]
+    fn test_preserves_existing_header() {
+        let tmp = TempDir::new().unwrap();
+        let memory_dir = tmp.path();
+
+        // Write a custom header in MEMORY.md
+        fs::write(
+            memory_dir.join("MEMORY.md"),
+            "# Custom Header\n\nSome notes.\n",
+        )
+        .unwrap();
+
+        create_memory_file(memory_dir, "note.md", "Note", "A note");
+
+        let result = sync_memory_index_internal(memory_dir).unwrap();
+        assert_eq!(result.entries, 1);
+
+        let index = fs::read_to_string(memory_dir.join("MEMORY.md")).unwrap();
+        assert!(
+            index.contains("# Custom Header"),
+            "Custom header should be preserved"
+        );
+        assert!(index.contains("[Note](note.md)"));
+    }
+
+    #[test]
+    fn test_files_without_frontmatter_use_filename() {
+        let tmp = TempDir::new().unwrap();
+        let memory_dir = tmp.path();
+
+        // Write a plain markdown file with no frontmatter
+        fs::write(memory_dir.join("plain_note.md"), "Just plain text.").unwrap();
+
+        let result = sync_memory_index_internal(memory_dir).unwrap();
+        assert_eq!(result.entries, 1);
+
+        let index = fs::read_to_string(memory_dir.join("MEMORY.md")).unwrap();
+        // Should fall back to filename without .md extension
+        assert!(index.contains("[plain_note](plain_note.md)"));
+        assert!(index.contains("No description"));
+    }
+}
