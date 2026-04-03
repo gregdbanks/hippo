@@ -28,10 +28,23 @@ body {
   overflow-y: auto;
 }
 
+.sidebar-brand {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.sidebar-logo {
+  width: 28px;
+  height: 28px;
+  image-rendering: pixelated;
+}
+
 .sidebar h2 {
   font-size: 1rem;
   color: #fff;
-  margin-bottom: 0.25rem;
+  margin-bottom: 0;
+  letter-spacing: 0.1em;
 }
 
 .sidebar .subtitle {

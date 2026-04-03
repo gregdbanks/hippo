@@ -26,7 +26,7 @@ pub fn run() {
             // app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             // Build tray context menu
-            let quit = MenuItemBuilder::with_id("quit", "Quit Claude Config").build(app)?;
+            let quit = MenuItemBuilder::with_id("quit", "Quit Hippo").build(app)?;
             let show = MenuItemBuilder::with_id("show", "Show Window").build(app)?;
             let menu = MenuBuilder::new(app)
                 .item(&show)
@@ -37,7 +37,7 @@ pub fn run() {
             // Build tray icon
             let _tray = TrayIconBuilder::new()
                 .icon(app.default_window_icon().unwrap().clone())
-                .tooltip("Claude Config")
+                .tooltip("Hippo")
                 .menu(&menu)
                 .on_menu_event(|app, event| {
                     match event.id().as_ref() {

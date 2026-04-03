@@ -289,7 +289,7 @@ export default function HelpPage() {
           borderRadius: '50%', background: `${PURPLE}08`,
         }} />
         <h1 style={{ color: WHITE, fontSize: '1.75rem', margin: 0, position: 'relative' }}>
-          Claude Config
+          Hippo
         </h1>
         <p style={{ color: TEXT_DIM, fontSize: '1rem', marginTop: '0.5rem', marginBottom: '1.5rem', position: 'relative' }}>
           See, edit, and manage every hidden file that shapes how Claude Code works for you.

@@ -2,7 +2,7 @@
 set -e
 
 VERSION=${1:?"Usage: ./scripts/release.sh 0.2.0"}
-APP_NAME="Claude Config"
+APP_NAME="Hippo"
 
 echo "Building $APP_NAME v$VERSION..."
 
@@ -16,7 +16,7 @@ sed -i '' "s/\"version\": \"[^\"]*\"/\"version\": \"$VERSION\"/" package.json
 sed -i '' "s/^version = \"[^\"]*\"/version = \"$VERSION\"/" src-tauri/Cargo.toml
 
 # Build
-export TAURI_SIGNING_PRIVATE_KEY=$(cat ~/.tauri/claude-config.key)
+export TAURI_SIGNING_PRIVATE_KEY=$(cat ~/.tauri/hippo.key)
 export TAURI_SIGNING_PRIVATE_KEY_PASSWORD=""
 npx tauri build
 

@@ -434,7 +434,7 @@ dependencies = [
 ]
 
 [[package]]
-name = "claude-config"
+name = "hippo"
 version = "0.1.0"
 dependencies = [
  "chrono",

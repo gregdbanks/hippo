@@ -1,8 +1,8 @@
 {
   "$schema": "../node_modules/@tauri-apps/cli/config.schema.json",
-  "productName": "Claude Config",
+  "productName": "Hippo",
   "version": "0.1.0",
-  "identifier": "com.gregbanks.claude-config",
+  "identifier": "com.gregbanks.hippo",
   "build": {
     "frontendDist": "../dist/client",
     "devUrl": "http://localhost:5173",
@@ -12,7 +12,7 @@
   "app": {
     "windows": [
       {
-        "title": "Claude Config",
+        "title": "Hippo",
         "width": 1100,
         "height": 750,
         "resizable": true,
@@ -28,7 +28,7 @@
     "updater": {
       "pubkey": "dW50cnVzdGVkIGNvbW1lbnQ6IG1pbmlzaWduIHB1YmxpYyBrZXk6IEU3NEQ2N0FBNDQwMzVBN0YKUldSL1dnTkVxbWRONTZheis5RTZsUXEweHdDQzdNK0c0Z1dLM01RQWRFcHB1Y2lyWUNWVjhsa0oK",
       "endpoints": [
-        "https://gist.githubusercontent.com/gregdbanks/3f3ac99fdc250ff726b8c060450ee12b/raw/claude-config-update.json"
+        "https://gist.githubusercontent.com/gregdbanks/3f3ac99fdc250ff726b8c060450ee12b/raw/hippo-update.json"
       ]
     }
   },

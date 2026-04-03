@@ -9,6 +9,7 @@ import SettingsEditor from './pages/SettingsEditor';
 import DocsBrowser from './pages/DocsBrowser';
 import SyncPage from './pages/SyncPage';
 import HelpPage from './pages/HelpPage';
+import hippoLogo from './hippo-logo.svg';
 
 export default function App() {
   const { data, loading, error, refresh } = useDiscovery();
@@ -17,7 +18,10 @@ export default function App() {
   return (
     <div className="app-layout">
       <aside className="sidebar">
-        <h2>Claude Config</h2>
+        <div className="sidebar-brand">
+          <img src={hippoLogo} alt="Hippo" className="sidebar-logo" />
+          <h2>HIPPO</h2>
+        </div>
         <p className="subtitle">Configuration Dashboard</p>
         <nav>
           <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
