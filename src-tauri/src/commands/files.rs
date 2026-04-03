@@ -1,3 +1,4 @@
+use crate::commands::memories::sync_memory_index_internal;
 use crate::util::paths::{is_path_deletable, is_path_writable};
 use crate::util::tokens::estimate_tokens;
 use serde::Serialize;
@@ -83,21 +84,11 @@ pub fn delete_file(path: String) -> Result<FileDeleteResult, String> {
 
     fs::remove_file(p).map_err(|e| format!("File not found: {}", e))?;
 
-    // If this is a memory file, update MEMORY.md index
+    // If this is a memory file, resync the MEMORY.md index
     if let Some(parent) = p.parent() {
         let parent_str = parent.to_string_lossy();
         if parent_str.contains("/memory") && filename != "MEMORY.md" {
-            let memory_index = parent.join("MEMORY.md");
-            if memory_index.exists() {
-                if let Ok(index_content) = fs::read_to_string(&memory_index) {
-                    let updated: String = index_content
-                        .lines()
-                        .filter(|line| !line.contains(&filename))
-                        .collect::<Vec<_>>()
-                        .join("\n");
-                    let _ = fs::write(&memory_index, updated);
-                }
-            }
+            let _ = sync_memory_index_internal(parent);
         }
     }
 

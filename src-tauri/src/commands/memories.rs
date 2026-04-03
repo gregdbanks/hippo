@@ -77,7 +77,7 @@ pub fn sync_memory_index(slug: String) -> Result<SyncIndexResult, String> {
     sync_memory_index_internal(&memory_dir)
 }
 
-fn sync_memory_index_internal(memory_dir: &std::path::Path) -> Result<SyncIndexResult, String> {
+pub fn sync_memory_index_internal(memory_dir: &std::path::Path) -> Result<SyncIndexResult, String> {
     let index_path = memory_dir.join("MEMORY.md");
 
     // Read existing index to preserve the header
