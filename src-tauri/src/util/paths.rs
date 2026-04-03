@@ -100,8 +100,10 @@ pub fn is_path_deletable(file_path: &Path) -> bool {
     let resolved_str = resolved.to_string_lossy();
 
     let projects_prefix = claude_dir().join("projects");
+    let global_memory_prefix = claude_dir().join("memory");
     let plans_prefix = plans_dir();
 
     (resolved.starts_with(&projects_prefix) && resolved_str.contains("/memory/"))
+        || (resolved.starts_with(&global_memory_prefix) && resolved_str.ends_with(".md"))
         || resolved.starts_with(&plans_prefix)
 }
