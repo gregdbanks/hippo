@@ -416,48 +416,50 @@ export default function HelpPage() {
           <p>This is the key difference from CLAUDE.md — put specialized, rarely-used workflows in skills instead of global instructions. Your prompt context stays lean.</p>
         </Accordion>
 
-        <Accordion title="Skill Pipelines" icon="&#9654;" iconColor={PURPLE}>
-          <p>Some skills are designed to run in sequence as a pipeline. Each skill in a pipeline reads the output of the previous one (via GitHub issues) and builds on it.</p>
+        <Accordion title="Planner Skills (Ticket-Only)" icon="&#9654;" iconColor={PURPLE}>
+          <p>Planner skills do one job: scan a codebase, document problems, and create GitHub issues. They <strong style={{ color: WHITE }}>never make code changes</strong>. Execution is a separate concern — a developer or an executor skill picks up the ticket and does the work.</p>
 
-          <h4 style={{ color: WHITE, fontSize: '0.85rem', marginTop: '1rem' }}>Design Pipeline</h4>
+          <p style={{ fontSize: '0.8rem', color: TEXT_DIM, marginTop: '0.5rem' }}>
+            This separation matters for a small team: you can run a planner skill, review the generated tickets, prioritize them against other work, and hand them off — without committing to the implementation in the same session.
+          </p>
+
+          <h4 style={{ color: WHITE, fontSize: '0.85rem', marginTop: '1rem' }}>Design System Planners</h4>
           <p style={{ fontSize: '0.8rem', color: TEXT_DIM }}>
-            Elevates an entire app's UI to professional quality using the <Code>@studybuddy/ui</Code> design system.
-            Each skill is <strong style={{ color: WHITE }}>granular by concern, app-wide in scope</strong>.
+            Four independent skills that scan an app for deviations from the <Code>@studybuddy/ui</Code> design system.
+            Each creates a focused GitHub issue in the <strong style={{ color: WHITE }}>Design System Compliance</strong> milestone. Run any of them standalone — no prerequisite ordering.
           </p>
 
           <Steps steps={[
-            { title: '/design-system-audit (optional)', desc: 'Are apps actually using @studybuddy/ui? Finds local reimplementations, missing imports, token violations. Creates adoption issue.' },
-            { title: '/design-audit', desc: 'Reads the whole app against tokens.css. Screenshots key pages. Creates a master GitHub issue with every deviation categorized.' },
-            { title: '/design-typography', desc: 'Reads the audit issue. Applies the --sb-text-* type scale across every file. Fixes in packages/ui first, then app-level.' },
-            { title: '/design-color', desc: 'Reads the audit issue. Applies the --sb-color-* palette across every file. Converts hardcoded values to tokens.' },
-            { title: '/design-spacing', desc: 'Reads the audit issue. Applies the --sb-space-* grid across every file. Fixes visual hierarchy through whitespace.' },
-            { title: '/design-polish', desc: 'Reads the audit issue. Adds hover states, focus rings, transitions using --sb-duration-* and --sb-ease-*. Closes the issue.' },
+            { title: '/design-typography', desc: 'Scans for hardcoded font-size, font-weight, line-height, font-family. Creates an issue listing every deviation with file:line and the correct --sb-text-* token.' },
+            { title: '/design-color', desc: 'Scans for hex, rgb, hsl, CSS color keywords, and SVG fills. Creates an issue listing every hardcoded color with the correct --sb-color-* token.' },
+            { title: '/design-spacing', desc: 'Scans for off-grid margin, padding, gap, border-radius. Creates an issue snapping each to the nearest --sb-space-* or --sb-radius-* token.' },
+            { title: '/design-polish', desc: 'Scans interactive elements for missing hover, focus-visible, active, transition, disabled, and loading states. Creates an issue listing the gaps with component adoption suggestions.' },
           ]} />
 
-          <h4 style={{ color: WHITE, fontSize: '0.85rem', marginTop: '1rem' }}>How it works</h4>
+          <h4 style={{ color: WHITE, fontSize: '0.85rem', marginTop: '1rem' }}>How they work</h4>
           <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', margin: '0.75rem 0' }}>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
-              <div style={{ color: PURPLE, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>GitHub Issues as thread</div>
-              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>The audit creates the issue. Each fix skill reads it, checks off items, and commits with <Code>refs #ISSUE</Code>.</div>
+              <div style={{ color: PURPLE, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>Plan, don't execute</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Allowed tools: <Code>Read Grep Glob Bash Agent</Code>. No <Code>Edit</Code>. The skill literally cannot modify files.</div>
             </div>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
               <div style={{ color: GREEN, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>Design system aware</div>
-              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Every skill reads <Code>tokens.css</Code> and fixes in <Code>packages/ui</Code> first — the shared library is the source of truth.</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Every skill reads <Code>tokens.css</Code> first and measures the app against the existing spec — not an ideal one.</div>
             </div>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
-              <div style={{ color: ORANGE, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>Visual verification</div>
-              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Each skill takes Playwright screenshots before and after. No "trust me it looks better."</div>
+              <div style={{ color: ORANGE, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>Independent, parallelizable</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>No ordering required. Run typography today, color next week. Each skill produces a self-contained ticket.</div>
             </div>
             <div style={{ background: SURFACE, borderRadius: 8, padding: '0.75rem' }}>
-              <div style={{ color: ACCENT, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>One at a time</div>
-              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Run each skill in its own session. Each is a full app-wide pass for one concern.</div>
+              <div style={{ color: ACCENT, fontWeight: 600, fontSize: '0.8rem', marginBottom: '0.25rem' }}>Milestone-tracked</div>
+              <div style={{ color: TEXT_DIM, fontSize: '0.8rem' }}>Every issue is assigned to the <Code>Design System Compliance</Code> milestone so the full effort is visible in one place.</div>
             </div>
           </div>
 
           <div style={{ background: `${PURPLE}10`, borderRadius: 6, padding: '0.75rem', borderLeft: `3px solid ${PURPLE}`, marginTop: '0.75rem' }}>
-            <div style={{ color: PURPLE, fontWeight: 600, fontSize: '0.8rem' }}>Why this order?</div>
+            <div style={{ color: PURPLE, fontWeight: 600, fontSize: '0.8rem' }}>Output contract</div>
             <div style={{ color: TEXT_DIM, fontSize: '0.78rem', marginTop: '0.25rem' }}>
-              Typography first (affects layout). Color second (biggest visual impact, independent of layout). Spacing third (now that type is settled). Polish last (interaction states on top of the final visual foundation).
+              Every deviation in every issue includes: <strong style={{ color: WHITE }}>file path, line number, current value, correct token</strong>. This makes each item actionable by a developer or an executor skill without needing to re-scan the app.
             </div>
           </div>
         </Accordion>

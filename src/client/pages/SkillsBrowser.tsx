@@ -174,6 +174,27 @@ export default function SkillsBrowser({ data, refresh }: Props) {
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
+  const [deletingName, setDeletingName] = useState<string | null>(null);
+
+  const handleDelete = async (name: string) => {
+    const confirmed = window.confirm(
+      `Delete /${name}?\n\nThis permanently removes ~/.claude/skills/${name}/ and cannot be undone.`
+    );
+    if (!confirmed) return;
+
+    setDeletingName(name);
+    setError(null);
+    try {
+      await invoke('delete_skill', { name });
+      setSuccess(`Deleted /${name}`);
+      setTimeout(() => setSuccess(null), 3000);
+      refresh();
+    } catch (err) {
+      setError(err instanceof Error ? err.message : String(err));
+    } finally {
+      setDeletingName(null);
+    }
+  };
 
   // Form fields
   const [name, setName] = useState('');
@@ -377,6 +398,15 @@ export default function SkillsBrowser({ data, refresh }: Props) {
                 >
                   Edit
                 </Link>
+                <button
+                  className="btn btn-ghost"
+                  onClick={() => handleDelete(skill.name)}
+                  disabled={deletingName === skill.name}
+                  style={{ fontSize: '0.75rem', color: 'var(--color-stale)' }}
+                  title={`Delete /${skill.name}`}
+                >
+                  {deletingName === skill.name ? 'Deleting...' : 'Delete'}
+                </button>
               </div>
             </div>
           ))}

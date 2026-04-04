@@ -88,6 +88,7 @@ pub fn run() {
             commands::files::read_file,
             commands::files::write_file,
             commands::files::delete_file,
+            commands::files::delete_skill,
             commands::settings::read_settings,
             commands::settings::write_settings,
             commands::memories::get_memories,

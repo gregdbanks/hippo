@@ -1,4 +1,4 @@
-use crate::util::paths::{is_path_deletable, is_path_writable};
+use crate::util::paths::{claude_dir, is_path_deletable, is_path_writable};
 use crate::util::tokens::estimate_tokens;
 use serde::Serialize;
 use std::fs;
@@ -100,6 +100,44 @@ pub fn delete_file(path: String) -> Result<FileDeleteResult, String> {
             }
         }
     }
+
+    Ok(FileDeleteResult { deleted: true })
+}
+
+#[tauri::command]
+pub fn delete_skill(name: String) -> Result<FileDeleteResult, String> {
+    // Validate the skill name — must be a simple slug, no path traversal
+    if name.is_empty()
+        || name.contains('/')
+        || name.contains('\\')
+        || name.contains("..")
+        || !name
+            .chars()
+            .all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_')
+    {
+        return Err("Invalid skill name".to_string());
+    }
+
+    let skills_dir = claude_dir().join("skills");
+    let skill_dir = skills_dir.join(&name);
+
+    // Verify the resolved path is still inside ~/.claude/skills/
+    let canonical_skills = skills_dir
+        .canonicalize()
+        .map_err(|e| format!("Skills directory not found: {}", e))?;
+    let canonical_skill = skill_dir
+        .canonicalize()
+        .map_err(|e| format!("Skill not found: {}", e))?;
+    if !canonical_skill.starts_with(&canonical_skills) {
+        return Err("Path escape detected".to_string());
+    }
+
+    if !canonical_skill.is_dir() {
+        return Err("Skill path is not a directory".to_string());
+    }
+
+    fs::remove_dir_all(&canonical_skill)
+        .map_err(|e| format!("Failed to delete skill: {}", e))?;
 
     Ok(FileDeleteResult { deleted: true })
 }
