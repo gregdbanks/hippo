@@ -505,7 +505,7 @@ fn reference_candidates(content: &str) -> Vec<(String, bool)> {
     use std::sync::OnceLock;
     static PATTERNS: OnceLock<Vec<(regex::Regex, bool)>> = OnceLock::new();
     let patterns = PATTERNS.get_or_init(|| {
-        [(r"\]\(([^)\s]+)\)", false), (r"`([^`\s]+)`", false), (r"(?m)(?:^|\s)@([~\w./-]+)", false), (r"(?m)(?:^|[\s(])/([a-z0-9][a-z0-9_-]*)\b", true)]
+        [(r"\]\(([^)\s]+)\)", false), (r"`([^`\s]+)`", false), (r"(?m)(?:^|\s)@([~\w./-]+)", false), (r"(?m)(?:^|[\s(`])/([a-z0-9][a-z0-9_-]*)\b", true)]
             .iter()
             .map(|(p, slash)| (regex::Regex::new(p).expect("valid pattern"), *slash))
             .collect()
@@ -1075,5 +1075,17 @@ mod tests {
         assert!(h.project("with-cursor").uses_cursor);
         assert!(h.project("legacy").uses_cursor);
         assert!(!h.project("claude-only").uses_cursor);
+    }
+
+    #[test]
+    fn skills_written_as_backticked_slash_commands_are_linked() {
+        let h = Home::new();
+        h.write(".claude/skills/browser-testing/SKILL.md", "---\nname: browser-testing\ndescription: x\n---\n");
+        h.write(".claude/skills/shipping-changes/SKILL.md", "---\nname: shipping-changes\ndescription: x\n---\n");
+        h.write(".claude/CLAUDE.md", "- Test in the browser. How: `/browser-testing` (ports).\n- Commit steps: `/shipping-changes`.\n");
+        let inv = h.inv();
+        let refs: Vec<&str> = file(&inv.claude_global, ".claude/CLAUDE.md").references.iter().map(|r| r.label.as_str()).collect();
+        assert_eq!(refs.len(), 2, "{:?}", refs);
+        assert!(file(&inv.claude_global, ".claude/CLAUDE.md").references.iter().all(|r| r.kind == RefKind::Skill));
     }
 }

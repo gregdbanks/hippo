@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Budget, ConfigFile } from '../types';
-import { countBytes, countLines, displayPath, levelOf, liveBudget, mirrorNeedsRun, mirrorSourcePath, percentOf, usedBy, worstLevel } from '../format';
+import { countBytes, countLines, displayPath, levelOf, liveBudget, mirrorNeedsRun, mirrorSourcePath, percentOf, skillName, usedBy, worstLevel } from '../format';
 
 const budget = (over: Partial<Budget> = {}): Budget => ({
   label: 'Length', used: 0, limit: 200, unit: 'lines', level: 'ok', note: '', source: '', ...over,
@@ -88,5 +88,12 @@ describe('unity helpers', () => {
     const doc = '/h/app/docs/claude/api.md';
     const claude = file({ path: '/h/app/CLAUDE.md', references: [{ label: 'docs/claude/api.md', path: doc, kind: 'file' }] });
     expect(usedBy([claude, file({ path: doc })], doc)).toEqual([claude]);
+  });
+});
+
+describe('skillName', () => {
+  it('uses the skill folder name', () => {
+    expect(skillName('/h/.claude/skills/browser-testing/SKILL.md')).toBe('browser-testing');
+    expect(skillName('SKILL.md')).toBe('SKILL.md');
   });
 });

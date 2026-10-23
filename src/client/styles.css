@@ -518,3 +518,8 @@ body {
 .alert-settings { background: #161b26; border: 1px solid #2a2f3e; border-radius: 8px; padding: 0.75rem 1rem; display: grid; gap: 0.5rem; font-size: 0.85rem; }
 .alert-settings .toggle { display: flex; align-items: center; gap: 0.6rem; margin: 0; color: #c5c8d0; }
 .alert-settings .toggle input { margin: 0; }
+.file-refs { display: flex; flex-wrap: wrap; gap: 0.3rem; align-items: center; margin-top: 0.35rem; }
+.ref-chip { font-size: 0.72rem; border-radius: 999px; padding: 0.05rem 0.5rem; text-decoration: none; white-space: nowrap; }
+.ref-chip.ref-skill { background: rgba(39, 174, 96, 0.15); color: #7dcea0; }
+.ref-chip.ref-file { background: #252a3a; color: #c5c8d0; }
+.ref-chip:hover { text-decoration: underline; }

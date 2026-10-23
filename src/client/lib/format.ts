@@ -104,6 +104,11 @@ export function usedBy(files: ConfigFile[], path: string): ConfigFile[] {
   return files.filter(f => f.path !== path && f.references.some(r => r.path === path));
 }
 
+export function skillName(skillPath: string): string {
+  const parts = skillPath.split('/');
+  return parts.length >= 2 ? parts[parts.length - 2] : skillPath;
+}
+
 export function editorLink(path: string): string {
   return `/edit?path=${encodeURIComponent(path)}`;
 }

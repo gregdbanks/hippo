@@ -1,6 +1,6 @@
 import { Link } from 'react-router-dom';
 import type { ConfigFile } from '../lib/types';
-import { KIND_LABEL, LOADING_LABEL, TOOL_LABEL, editorLink, formatTokens, timeAgo, worstLevel } from '../lib/format';
+import { KIND_LABEL, LOADING_LABEL, TOOL_LABEL, editorLink, formatTokens, skillName, timeAgo, worstLevel } from '../lib/format';
 import { Gauge } from './Gauge';
 
 export function FileList({ files }: { files: ConfigFile[] }) {
@@ -31,6 +31,16 @@ export function FileList({ files }: { files: ConfigFile[] }) {
                 {f.tool === 'shared' && <span className="badge badge-tool-shared">{TOOL_LABEL.shared}</span>}
                 {f.issues.map(issue => <div key={issue} className="issue">{issue}</div>)}
                 {f.description && <div className="file-desc">{f.description}</div>}
+                {f.references.length > 0 && (
+                  <div className="file-refs">
+                    <span className="muted small">Uses </span>
+                    {f.references.map(r => (
+                      <Link key={r.path} to={editorLink(r.path)} className={`ref-chip ref-${r.kind}`}>
+                        {r.kind === 'skill' ? `/${skillName(r.path)}` : r.label}
+                      </Link>
+                    ))}
+                  </div>
+                )}
               </td>
               <td><span className={`badge badge-load-${f.loading}`} title={f.loadingNote}>{LOADING_LABEL[f.loading]}</span></td>
               <td>
