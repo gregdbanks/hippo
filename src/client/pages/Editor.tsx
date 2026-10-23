@@ -1,12 +1,13 @@
-import { useCallback, useEffect, useState } from 'react';
+import { useCallback, useEffect, useRef, useState } from 'react';
 import { useNavigate, useSearchParams } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
 import { findFile, useInventory } from '../hooks/useInventory';
 import { Gauge } from '../components/Gauge';
 import { ReferencesPanel } from '../components/ReferencesPanel';
+import { HighlightedEditor } from '../components/HighlightedEditor';
 import { Link } from 'react-router-dom';
 import type { FileData } from '../lib/types';
-import { KIND_LABEL, LOADING_LABEL, TOOL_LABEL, displayPath, editorLink, formatTokens, liveBudget, mirrorSourcePath } from '../lib/format';
+import { KIND_LABEL, LOADING_LABEL, TOOL_LABEL, displayPath, editorLink, findMatches, formatTokens, liveBudget, mirrorSourcePath } from '../lib/format';
 
 const CONFLICT = 'CONFLICT';
 const draftKey = (path: string) => `hippo-draft:${path}`;
@@ -64,6 +65,12 @@ export default function Editor() {
   const [restored, setRestored] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savedAt, setSavedAt] = useState<string | null>(null);
+  const [findOpen, setFindOpen] = useState(params.get('find') !== null);
+  const [findQuery, setFindQuery] = useState(params.get('find') ?? '');
+  const [matchIndex, setMatchIndex] = useState(0);
+  const textareaRef = useRef<HTMLTextAreaElement>(null);
+  const findRef = useRef<HTMLInputElement>(null);
+  const startLine = Number(params.get('line') ?? '0');
 
   const load = useCallback(async (keepDraft: boolean) => {
     if (!path) return;
@@ -89,6 +96,38 @@ export default function Editor() {
     setSavedAt(null);
     load(true);
   }, [load]);
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
+        e.preventDefault();
+        setFindOpen(true);
+        window.setTimeout(() => findRef.current?.select(), 0);
+      }
+    };
+    window.addEventListener('keydown', onKey);
+    return () => window.removeEventListener('keydown', onKey);
+  }, []);
+
+  const matches = findMatches(content, findQuery);
+
+  const [scrollKey, setScrollKey] = useState('');
+
+  const showMatch = useCallback((index: number) => {
+    setMatchIndex(index);
+    setScrollKey(`${index}:${Date.now()}`);
+  }, []);
+
+  useEffect(() => {
+    if (!disk || !params.get('find')) return;
+    const first = findMatches(disk.content, params.get('find') ?? '').findIndex(m => m.line >= startLine);
+    if (first >= 0) showMatch(first);
+  }, [disk, params, startLine, showMatch]);
+
+  const step = (direction: 1 | -1) => {
+    if (matches.length === 0) return;
+    showMatch((matchIndex + direction + matches.length) % matches.length);
+  };
 
   if (!path) return <div className="error-msg">No file selected.</div>;
   if (error && !disk) return <div className="error-msg">{error}</div>;
@@ -178,9 +217,36 @@ export default function Editor() {
       <div className="editor-container">
         <div className="editor-header">
           <span className="file-path">{info ? LOADING_LABEL[info.loading] : ''}</span>
+          <button className="btn btn-ghost btn-small" onClick={() => { setFindOpen(true); window.setTimeout(() => findRef.current?.select(), 0); }}>Find (Cmd+F)</button>
           <span className="badge badge-token">{formatTokens(Math.ceil(content.length / 3.7))} tokens</span>
         </div>
-        <textarea className="editor-textarea" value={content} onChange={e => onChange(e.target.value)} spellCheck={false} />
+        {findOpen && (
+          <div className="find-bar">
+            <input
+              ref={findRef}
+              autoFocus
+              placeholder="Find in this file"
+              value={findQuery}
+              onChange={e => { setFindQuery(e.target.value); showMatch(0); }}
+              onKeyDown={e => {
+                if (e.key === 'Enter') { e.preventDefault(); step(e.shiftKey ? -1 : 1); }
+                if (e.key === 'Escape') setFindOpen(false);
+              }}
+            />
+            <span className="muted small">{findQuery.trim() ? (matches.length ? `${Math.min(matchIndex + 1, matches.length)} of ${matches.length}` : 'No matches') : 'Enter for next, Shift+Enter for previous'}</span>
+            <button className="btn btn-ghost btn-small" onClick={() => step(-1)} disabled={!matches.length}>Previous</button>
+            <button className="btn btn-ghost btn-small" onClick={() => step(1)} disabled={!matches.length}>Next</button>
+            <button className="btn btn-ghost btn-small" onClick={() => setFindOpen(false)}>Close</button>
+          </div>
+        )}
+        <HighlightedEditor
+          value={content}
+          onChange={onChange}
+          matches={findOpen ? matches : []}
+          current={matchIndex}
+          scrollKey={scrollKey}
+          areaRef={textareaRef}
+        />
         <div className="editor-footer">
           <div className="row">
             <button className="btn btn-primary" onClick={save} disabled={saving || !dirty || !!badJson}>

@@ -112,3 +112,40 @@ export function skillName(skillPath: string): string {
 export function editorLink(path: string): string {
   return `/edit?path=${encodeURIComponent(path)}`;
 }
+
+export interface TextMatch {
+  start: number;
+  end: number;
+  line: number;
+}
+
+export function findMatches(text: string, query: string): TextMatch[] {
+  const needle = query.trim().toLowerCase();
+  if (!needle) return [];
+  const haystack = text.toLowerCase();
+  const matches: TextMatch[] = [];
+  let line = 1;
+  let lineScan = 0;
+  for (let at = haystack.indexOf(needle); at !== -1; at = haystack.indexOf(needle, at + needle.length)) {
+    for (; lineScan < at; lineScan += 1) if (text[lineScan] === '\n') line += 1;
+    matches.push({ start: at, end: at + needle.length, line });
+  }
+  return matches;
+}
+
+export interface Segment {
+  text: string;
+  kind: 'plain' | 'match' | 'current';
+}
+
+export function highlightSegments(text: string, matches: TextMatch[], current: number): Segment[] {
+  const segments: Segment[] = [];
+  let at = 0;
+  matches.forEach((m, i) => {
+    if (m.start > at) segments.push({ text: text.slice(at, m.start), kind: 'plain' });
+    segments.push({ text: text.slice(m.start, m.end), kind: i === current ? 'current' : 'match' });
+    at = m.end;
+  });
+  if (at < text.length || segments.length === 0) segments.push({ text: text.slice(at), kind: 'plain' });
+  return segments;
+}

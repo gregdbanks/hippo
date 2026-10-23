@@ -101,6 +101,7 @@ pub fn run() {
             commands::unity::mirror_rules_to_cursor,
             commands::alerts::get_alerts,
             commands::alerts::set_alerts_enabled,
+            commands::search::search_configs,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

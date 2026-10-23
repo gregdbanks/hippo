@@ -8,6 +8,7 @@ import Editor from './pages/Editor';
 import MemoryBrowser from './pages/MemoryBrowser';
 import HelpPage from './pages/HelpPage';
 import SkillsPage from './pages/SkillsPage';
+import SearchPage from './pages/SearchPage';
 
 const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '');
 
@@ -33,6 +34,7 @@ export default function App() {
           <NavLink to="/claude" className={navClass}>Claude</NavLink>
           <NavLink to="/cursor" className={navClass}>Cursor</NavLink>
           <NavLink to="/skills" className={navClass}>Skills</NavLink>
+          <NavLink to="/search" className={navClass}>Search</NavLink>
           <div className="section-label">Help</div>
           <NavLink to="/help" className={navClass}>How it works</NavLink>
         </nav>
@@ -44,6 +46,7 @@ export default function App() {
           <Route path="/claude" element={<ToolView key="claude" tool="claude" />} />
           <Route path="/cursor" element={<ToolView key="cursor" tool="cursor" />} />
           <Route path="/skills" element={<SkillsPage />} />
+          <Route path="/search" element={<SearchPage />} />
           <Route path="/edit" element={<Editor />} />
           <Route path="/memories/:slug" element={<MemoryBrowser />} />
           <Route path="/help" element={<HelpPage />} />

@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import type { Budget, ConfigFile } from '../types';
-import { countBytes, countLines, displayPath, levelOf, liveBudget, mirrorNeedsRun, mirrorSourcePath, percentOf, skillName, usedBy, worstLevel } from '../format';
+import { countBytes, countLines, displayPath, findMatches, highlightSegments, levelOf, liveBudget, mirrorNeedsRun, mirrorSourcePath, percentOf, skillName, usedBy, worstLevel } from '../format';
 
 const budget = (over: Partial<Budget> = {}): Budget => ({
   label: 'Length', used: 0, limit: 200, unit: 'lines', level: 'ok', note: '', source: '', ...over,
@@ -95,5 +95,38 @@ describe('skillName', () => {
   it('uses the skill folder name', () => {
     expect(skillName('/h/.claude/skills/browser-testing/SKILL.md')).toBe('browser-testing');
     expect(skillName('SKILL.md')).toBe('SKILL.md');
+  });
+});
+
+describe('findMatches', () => {
+  it('finds every case-insensitive match with its line', () => {
+    const text = 'one Skill\ntwo\nuse the skill now, skill';
+    expect(findMatches(text, 'skill')).toEqual([
+      { start: 4, end: 9, line: 1 },
+      { start: 22, end: 27, line: 3 },
+      { start: 33, end: 38, line: 3 },
+    ]);
+  });
+
+  it('returns nothing for an empty query', () => {
+    expect(findMatches('anything', '')).toEqual([]);
+    expect(findMatches('anything', '   ')).toEqual([]);
+  });
+});
+
+describe('highlightSegments', () => {
+  it('splits text into plain, match and current parts', () => {
+    const text = 'a skill and a skill';
+    const matches = findMatches(text, 'skill');
+    expect(highlightSegments(text, matches, 1)).toEqual([
+      { text: 'a ', kind: 'plain' },
+      { text: 'skill', kind: 'match' },
+      { text: ' and a ', kind: 'plain' },
+      { text: 'skill', kind: 'current' },
+    ]);
+  });
+
+  it('returns the whole text when nothing matches', () => {
+    expect(highlightSegments('abc', [], 0)).toEqual([{ text: 'abc', kind: 'plain' }]);
   });
 });

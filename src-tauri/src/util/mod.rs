@@ -6,5 +6,6 @@ pub mod inventory;
 pub mod memory;
 pub mod paths;
 pub mod safe_write;
+pub mod search;
 pub mod tokens;
 pub mod unity;

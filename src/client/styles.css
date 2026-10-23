@@ -523,3 +523,16 @@ body {
 .ref-chip.ref-skill { background: rgba(39, 174, 96, 0.15); color: #7dcea0; }
 .ref-chip.ref-file { background: #252a3a; color: #c5c8d0; }
 .ref-chip:hover { text-decoration: underline; }
+.search-input { max-width: 520px; margin: 0 0 0.75rem; }
+.search-file { background: #161b26; border: 1px solid #2a2f3e; border-radius: 8px; padding: 0.6rem 1rem; margin-bottom: 0.6rem; }
+.search-file h3 { font-size: 0.85rem; color: #fff; margin: 0 0 0.4rem; word-break: break-all; }
+.search-hit { display: grid; grid-template-columns: 3rem 1fr; gap: 0.5rem; padding: 0.2rem 0; color: #c5c8d0; text-decoration: none; font-family: ui-monospace, Menlo, monospace; font-size: 0.78rem; word-break: break-word; }
+.search-hit:hover { background: #1f2433; }
+.find-bar { display: flex; gap: 0.5rem; align-items: center; margin-bottom: 0.5rem; flex-wrap: wrap; }
+.find-bar input { max-width: 280px; margin: 0; padding: 0.3rem 0.6rem; font-size: 0.85rem; height: auto; }
+.hl-wrap { position: relative; background: #13171f; }
+.hl-mirror { position: absolute; top: 0; left: 0; overflow: hidden; white-space: pre-wrap; overflow-wrap: break-word; word-break: normal; color: transparent; border-style: solid; border-color: transparent; box-sizing: border-box; pointer-events: none; }
+.hl-mirror mark { color: transparent; border-radius: 2px; }
+.hl-mirror .hl-match { background: rgba(250, 204, 21, 0.35); }
+.hl-mirror .hl-current { background: #f97316; box-shadow: 0 0 0 2px #f97316; }
+.editor-textarea.hl-area { position: relative; z-index: 1; background: transparent; display: block; box-sizing: border-box; }

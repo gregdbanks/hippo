@@ -8,7 +8,7 @@ import { TOOL_LABEL, displayPath, editorLink, formatTokens, mirrorNeedsRun, perc
 function attentionList(inv: Inventory): ConfigFile[] {
   const rank = { over: 0, warn: 1, ok: 2 };
   return allFiles(inv)
-    .filter(f => worstLevel(f) !== 'ok')
+    .filter(f => !f.linkTarget && worstLevel(f) !== 'ok')
     .sort((a, b) => rank[worstLevel(a)] - rank[worstLevel(b)] || b.lines - a.lines);
 }
 
