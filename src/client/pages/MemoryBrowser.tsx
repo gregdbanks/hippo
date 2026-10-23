@@ -1,8 +1,9 @@
 import { useState, useEffect, useCallback } from 'react';
 import { useParams, Link } from 'react-router-dom';
 import { invoke } from '@tauri-apps/api/core';
-import { useDiscovery } from '../hooks/useDiscovery';
-import type { MemoryHealth } from '../hooks/useDiscovery';
+import { useInventory } from '../hooks/useInventory';
+import { Gauge } from '../components/Gauge';
+import { editorLink } from '../lib/format';
 
 interface MemoryInfo {
   filename: string;
@@ -35,6 +36,7 @@ export default function MemoryBrowser() {
   const [memories, setMemories] = useState<MemoryInfo[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [actionError, setActionError] = useState<string | null>(null);
   const [filter, setFilter] = useState<string>('all');
   const [sortBy, setSortBy] = useState<'modified' | 'name' | 'tokens'>('modified');
   const [showCreate, setShowCreate] = useState(false);
@@ -74,8 +76,9 @@ export default function MemoryBrowser() {
       setNewMemory({ filename: '', name: '', description: '', memoryType: 'feedback', body: '' });
       setShowCreate(false);
       await load();
+      await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setActionError(err instanceof Error ? err.message : String(err));
     } finally {
       setCreating(false);
     }
@@ -85,8 +88,9 @@ export default function MemoryBrowser() {
     if (!slug) return;
     try {
       await invoke('sync_memory_index', { slug });
+      await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
+      setActionError(err instanceof Error ? err.message : String(err));
     }
   };
 
@@ -95,19 +99,20 @@ export default function MemoryBrowser() {
     try {
       await invoke('delete_file', { path: memory.path });
       await load();
+      await refresh();
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to delete');
+      setActionError(err instanceof Error ? err.message : 'Failed to delete');
     }
   };
 
-  const { data: discoveryData } = useDiscovery();
-  const projectHealth: MemoryHealth | null = discoveryData?.projects.find(p => p.slug === slug)?.memoryHealth || null;
+  const { data: inventory, refresh } = useInventory();
+  const project = inventory?.projects.find(p => p.memorySlug === slug) ?? null;
+  const memoryIndex = project?.files.find(f => f.kind === 'memoryIndex') ?? null;
 
   if (loading) return <div className="loading">Loading memories...</div>;
   if (error) return <div className="error-msg">{error}</div>;
 
-  const decodedSlug = slug || '';
-  const projectName = decodedSlug.split('-').pop() || decodedSlug;
+  const projectName = project?.name ?? slug ?? '';
 
   const types = ['all', ...new Set(memories.map(m => m.type))];
   const filtered = memories
@@ -203,49 +208,17 @@ export default function MemoryBrowser() {
         </div>
       )}
 
-      {projectHealth && (
-        <div style={{
-          background: projectHealth.grade === 'critical' ? 'rgba(231, 76, 60, 0.08)' : projectHealth.grade === 'warning' ? 'rgba(243, 156, 18, 0.08)' : 'rgba(39, 174, 96, 0.08)',
-          border: `1px solid ${projectHealth.grade === 'critical' ? 'rgba(231, 76, 60, 0.25)' : projectHealth.grade === 'warning' ? 'rgba(243, 156, 18, 0.25)' : 'rgba(39, 174, 96, 0.25)'}`,
-          borderRadius: '8px',
-          padding: '1rem 1.25rem',
-          marginBottom: '1.5rem',
-        }}>
-          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '0.5rem' }}>
-            <span style={{ fontWeight: 600, color: '#fff', fontSize: '0.9rem' }}>
-              Memory Health
-            </span>
-            <span className={`badge badge-${projectHealth.grade === 'healthy' ? 'current' : projectHealth.grade === 'warning' ? 'review' : 'stale'}`}
-              style={{ fontSize: '0.8rem', padding: '0.2rem 0.75rem' }}>
-              {projectHealth.score}%
-            </span>
-          </div>
-          <div style={{ display: 'flex', gap: '1.5rem', fontSize: '0.8rem', color: '#8b8fa3', marginBottom: '0.5rem' }}>
-            <span>{projectHealth.memoryCount}/{projectHealth.optimalMax} optimal count</span>
-            <span>{projectHealth.tokenBudgetPct}% of context budget</span>
-            <span>MEMORY.md: {projectHealth.indexLineCount}/{projectHealth.indexLineLimit} lines</span>
-          </div>
-          <div style={{ width: '100%', height: '8px', background: '#252a3a', borderRadius: '4px', overflow: 'hidden', marginBottom: '0.5rem' }}>
-            <div style={{
-              width: `${Math.min(100, (projectHealth.memoryCount / (projectHealth.optimalMax * 2)) * 100)}%`,
-              height: '100%',
-              borderRadius: '4px',
-              background: projectHealth.grade === 'healthy' ? 'var(--color-current)' : projectHealth.grade === 'warning' ? 'var(--color-review)' : 'var(--color-stale)',
-            }} />
-          </div>
-          {projectHealth.suggestions.length > 0 && (
-            <div style={{ marginTop: '0.25rem' }}>
-              {projectHealth.suggestions.map((s, i) => (
-                <div key={i} style={{
-                  fontSize: '0.75rem',
-                  color: projectHealth.grade === 'critical' ? 'var(--color-stale)' : 'var(--color-review)',
-                  lineHeight: 1.5,
-                }}>
-                  {s}
-                </div>
-              ))}
-            </div>
-          )}
+      {actionError && (
+        <div className="banner banner-warn">
+          {actionError}
+          <div className="banner-actions"><button className="btn btn-ghost btn-small" onClick={() => setActionError(null)}>Dismiss</button></div>
+        </div>
+      )}
+
+      {memoryIndex && (
+        <div className="gauges">
+          {memoryIndex.budgets.map(b => <Gauge key={b.label} budget={b} />)}
+          <Link className="btn btn-ghost btn-small" to={editorLink(memoryIndex.path)}>Edit MEMORY.md</Link>
         </div>
       )}
 

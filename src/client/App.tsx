@@ -1,86 +1,51 @@
-import { Routes, Route, NavLink, useLocation } from 'react-router-dom';
-import { useDiscovery } from './hooks/useDiscovery';
-import { UpdateBanner } from './components/UpdateBanner';
-import Dashboard from './pages/Dashboard';
+import { useEffect } from 'react';
+import { NavLink, Route, Routes, useLocation } from 'react-router-dom';
+import { allFiles, useInventory } from './hooks/useInventory';
+import { needsAttention } from './lib/format';
+import Overview from './pages/Overview';
+import ToolView from './pages/ToolView';
 import Editor from './pages/Editor';
 import MemoryBrowser from './pages/MemoryBrowser';
-import SkillsBrowser from './pages/SkillsBrowser';
-import SettingsEditor from './pages/SettingsEditor';
-import DocsBrowser from './pages/DocsBrowser';
-import SyncPage from './pages/SyncPage';
 import HelpPage from './pages/HelpPage';
+import SkillsPage from './pages/SkillsPage';
+
+const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '');
 
 export default function App() {
-  const { data, loading, error, refresh } = useDiscovery();
-  const location = useLocation();
+  const { data } = useInventory();
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo(0, 0);
+  }, [pathname]);
+
+  const flagged = data ? allFiles(data).filter(needsAttention).length : 0;
 
   return (
     <div className="app-layout">
       <aside className="sidebar">
-        <h2>Claude Config</h2>
-        <p className="subtitle">Configuration Dashboard</p>
+        <h2>Hippo</h2>
+        <p className="subtitle">Claude and Cursor config</p>
         <nav>
-          <NavLink to="/" end className={({ isActive }) => isActive ? 'active' : ''}>
-            Dashboard
+          <NavLink to="/" end className={navClass}>
+            Overview {flagged > 0 && <span className="nav-count">{flagged}</span>}
           </NavLink>
-
-          <div className="section-label">Config Files</div>
-          {data?.globalClaude && (
-            <NavLink
-              to={`/edit?path=${encodeURIComponent(data.globalClaude.path)}`}
-              className={location.pathname === '/edit' && location.search.includes('CLAUDE.md') && !location.search.includes('projects') ? 'active' : ''}
-            >
-              Global CLAUDE.md
-            </NavLink>
-          )}
-          <NavLink to="/settings" className={({ isActive }) => isActive ? 'active' : ''}>
-            Settings
-          </NavLink>
-          <NavLink to="/skills" className={({ isActive }) => isActive ? 'active' : ''}>
-            Skills ({data?.skills.length || 0})
-          </NavLink>
-          <NavLink to="/docs" className={({ isActive }) => isActive ? 'active' : ''}>
-            Docs
-          </NavLink>
-          <NavLink to="/sync" className={({ isActive }) => isActive ? 'active' : ''}>
-            Sync
-          </NavLink>
-
+          <NavLink to="/claude" className={navClass}>Claude</NavLink>
+          <NavLink to="/cursor" className={navClass}>Cursor</NavLink>
+          <NavLink to="/skills" className={navClass}>Skills</NavLink>
           <div className="section-label">Help</div>
-          <NavLink to="/help" className={({ isActive }) => isActive ? 'active' : ''}>
-            How to Use
-          </NavLink>
-
-          {data && data.projects.length > 0 && (
-            <>
-              <div className="section-label">Projects</div>
-              {data.projects.map(p => {
-                const name = p.realPath.split('/').pop() || p.slug;
-                return (
-                  <NavLink
-                    key={p.slug}
-                    to={`/memories/${encodeURIComponent(p.slug)}`}
-                    className={({ isActive }) => isActive ? 'active' : ''}
-                  >
-                    {name} ({p.memoryCount})
-                  </NavLink>
-                );
-              })}
-            </>
-          )}
+          <NavLink to="/help" className={navClass}>How it works</NavLink>
         </nav>
       </aside>
 
       <main className="main-content">
-        <UpdateBanner />
         <Routes>
-          <Route path="/" element={<Dashboard data={data} loading={loading} error={error} refresh={refresh} />} />
+          <Route path="/" element={<Overview />} />
+          <Route path="/claude" element={<ToolView key="claude" tool="claude" />} />
+          <Route path="/cursor" element={<ToolView key="cursor" tool="cursor" />} />
+          <Route path="/skills" element={<SkillsPage />} />
           <Route path="/edit" element={<Editor />} />
           <Route path="/memories/:slug" element={<MemoryBrowser />} />
-          <Route path="/skills" element={<SkillsBrowser data={data} refresh={refresh} />} />
-          <Route path="/settings" element={<SettingsEditor />} />
-          <Route path="/docs" element={<DocsBrowser />} />
-          <Route path="/sync" element={<SyncPage />} />
           <Route path="/help" element={<HelpPage />} />
         </Routes>
       </main>

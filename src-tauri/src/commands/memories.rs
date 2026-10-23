@@ -1,4 +1,4 @@
-use crate::util::discover::{get_memories as do_get_memories, MemoryInfo};
+use crate::util::memory::{get_memories as do_get_memories, MemoryInfo};
 use crate::util::paths::projects_dir;
 use serde::{Deserialize, Serialize};
 use std::fs;
@@ -26,13 +26,24 @@ pub struct SyncIndexResult {
     pub entries: usize,
 }
 
+fn valid_segment(s: &str) -> bool {
+    !s.is_empty() && s != ".." && s.chars().all(|c| c.is_ascii_alphanumeric() || c == '-' || c == '_' || c == '.') && !s.contains("..")
+}
+
 #[tauri::command]
 pub fn get_memories(slug: String) -> Result<Vec<MemoryInfo>, String> {
+    if !valid_segment(&slug) {
+        return Err("Invalid project".to_string());
+    }
     Ok(do_get_memories(&slug))
 }
 
 #[tauri::command]
 pub fn create_memory(input: CreateMemoryInput) -> Result<CreateMemoryResult, String> {
+    let stem = input.filename.trim_end_matches(".md");
+    if !valid_segment(&input.slug) || !valid_segment(stem) {
+        return Err("Use letters, numbers, dashes or underscores for the file name".to_string());
+    }
     let memory_dir = projects_dir().join(&input.slug).join("memory");
     if !memory_dir.exists() {
         fs::create_dir_all(&memory_dir)
@@ -70,6 +81,9 @@ pub fn create_memory(input: CreateMemoryInput) -> Result<CreateMemoryResult, Str
 
 #[tauri::command]
 pub fn sync_memory_index(slug: String) -> Result<SyncIndexResult, String> {
+    if !valid_segment(&slug) {
+        return Err("Invalid project".to_string());
+    }
     let memory_dir = projects_dir().join(&slug).join("memory");
     if !memory_dir.exists() {
         return Err("Memory directory not found".to_string());
@@ -79,57 +93,110 @@ pub fn sync_memory_index(slug: String) -> Result<SyncIndexResult, String> {
 
 fn sync_memory_index_internal(memory_dir: &std::path::Path) -> Result<SyncIndexResult, String> {
     let index_path = memory_dir.join("MEMORY.md");
-
-    // Read existing index to preserve the header
-    let existing = fs::read_to_string(&index_path).unwrap_or_default();
-    let header = existing
-        .lines()
-        .take_while(|l| !l.starts_with("- ["))
-        .collect::<Vec<_>>()
-        .join("\n");
-
-    // Scan all memory files and build index entries
-    let entries: Vec<String> = match fs::read_dir(memory_dir) {
-        Ok(dir) => dir
-            .flatten()
-            .filter(|e| {
-                let name = e.file_name().to_string_lossy().to_string();
-                name.ends_with(".md") && name != "MEMORY.md"
-            })
-            .filter_map(|e| {
-                let content = fs::read_to_string(e.path()).ok()?;
-                let parsed = crate::util::frontmatter::parse_frontmatter(&content);
-                let name = parsed.frontmatter.get("name").cloned().unwrap_or_else(|| {
-                    e.file_name()
-                        .to_string_lossy()
-                        .trim_end_matches(".md")
-                        .to_string()
-                });
-                let description = parsed
-                    .frontmatter
-                    .get("description")
-                    .cloned()
-                    .unwrap_or_else(|| "No description".to_string());
-                let filename = e.file_name().to_string_lossy().to_string();
-                Some(format!("- [{}]({}) — {}", name, filename, description))
-            })
-            .collect(),
-        Err(e) => return Err(format!("Cannot read memory directory: {}", e)),
+    let existing = match fs::read_to_string(&index_path) {
+        Ok(text) => text,
+        Err(e) if e.kind() == std::io::ErrorKind::NotFound => String::new(),
+        Err(e) => return Err(format!("Couldn't read MEMORY.md, so it was left alone: {}", e)),
     };
 
-    let entry_count = entries.len();
-    let header_trimmed = header.trim_end();
-    let index_content = if header_trimmed.is_empty() {
-        format!("# Memory Index\n\n{}\n", entries.join("\n"))
-    } else {
-        format!("{}\n{}\n", header_trimmed, entries.join("\n"))
-    };
+    let mut files: Vec<std::path::PathBuf> = fs::read_dir(memory_dir)
+        .map_err(|e| format!("Cannot read memory directory: {}", e))?
+        .flatten()
+        .map(|e| e.path())
+        .filter(|p| {
+            let name = p.file_name().map(|n| n.to_string_lossy().to_string()).unwrap_or_default();
+            name.ends_with(".md") && name != "MEMORY.md"
+        })
+        .collect();
+    files.sort();
 
-    fs::write(&index_path, index_content)
-        .map_err(|e| format!("Failed to write MEMORY.md: {}", e))?;
+    let missing: Vec<String> = files
+        .iter()
+        .filter_map(|path| {
+            let filename = path.file_name()?.to_string_lossy().to_string();
+            if existing.contains(&format!("({})", filename)) {
+                return None;
+            }
+            let content = fs::read_to_string(path).ok()?;
+            let fm = crate::util::frontmatter::parse_frontmatter(&content).frontmatter;
+            let name = fm.get("name").cloned().unwrap_or_else(|| filename.trim_end_matches(".md").to_string());
+            let description = fm.get("description").cloned().unwrap_or_else(|| "No description".to_string());
+            Some(format!("- [{}]({}) - {}", name, filename, description))
+        })
+        .collect();
+
+    if !missing.is_empty() || existing.is_empty() {
+        let mut updated = if existing.is_empty() { "# Memory Index\n\n".to_string() } else { existing.clone() };
+        if !updated.ends_with('\n') {
+            updated.push('\n');
+        }
+        for line in &missing {
+            updated.push_str(line);
+            updated.push('\n');
+        }
+        fs::write(&index_path, updated).map_err(|e| format!("Failed to write MEMORY.md: {}", e))?;
+    }
 
     Ok(SyncIndexResult {
         synced: true,
-        entries: entry_count,
+        entries: missing.len(),
     })
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+
+    fn memory_dir() -> (tempfile::TempDir, std::path::PathBuf) {
+        let tmp = tempfile::tempdir().unwrap();
+        let dir = tmp.path().join("memory");
+        fs::create_dir_all(&dir).unwrap();
+        (tmp, dir)
+    }
+
+    #[test]
+    fn sync_keeps_every_existing_line_and_appends_missing_entries() {
+        let (_tmp, dir) = memory_dir();
+        let curated = "# Memory Index\n\n## Active Work\n- [Known](known.md) - already listed\n\n## Rules\n- NEVER post without showing Greg first.\n";
+        fs::write(dir.join("MEMORY.md"), curated).unwrap();
+        fs::write(dir.join("known.md"), "---\nname: Known\ndescription: listed\n---\nx\n").unwrap();
+        fs::write(dir.join("new_fact.md"), "---\nname: New fact\ndescription: not listed yet\n---\nx\n").unwrap();
+
+        let result = sync_memory_index_internal(&dir).unwrap();
+        let index = fs::read_to_string(dir.join("MEMORY.md")).unwrap();
+
+        assert!(index.starts_with(curated));
+        assert!(index.contains("[New fact](new_fact.md)"));
+        assert_eq!(index.matches("known.md").count(), 1);
+        assert_eq!(result.entries, 1);
+    }
+
+    #[test]
+    fn sync_creates_an_index_when_missing() {
+        let (_tmp, dir) = memory_dir();
+        fs::write(dir.join("a.md"), "---\nname: A\ndescription: first\n---\nx\n").unwrap();
+        sync_memory_index_internal(&dir).unwrap();
+        let index = fs::read_to_string(dir.join("MEMORY.md")).unwrap();
+        assert!(index.contains("[A](a.md)"));
+    }
+
+    #[test]
+    fn rejects_names_that_could_escape_the_memory_folder() {
+        assert!(valid_segment("feedback_style"));
+        assert!(valid_segment("-Users-someone-code-app"));
+        assert!(!valid_segment("../../x"));
+        assert!(!valid_segment("a/b"));
+        assert!(!valid_segment(""));
+        assert!(!valid_segment(".."));
+    }
+
+    #[test]
+    fn sync_refuses_to_touch_an_index_it_cannot_read() {
+        let (_tmp, dir) = memory_dir();
+        let curated = b"# Index\n- caf\xe9 notes\n";
+        fs::write(dir.join("MEMORY.md"), curated).unwrap();
+        fs::write(dir.join("a.md"), "---\nname: A\n---\nx\n").unwrap();
+        assert!(sync_memory_index_internal(&dir).is_err());
+        assert_eq!(fs::read(dir.join("MEMORY.md")).unwrap(), curated);
+    }
 }

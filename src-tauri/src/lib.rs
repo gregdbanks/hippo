@@ -3,14 +3,13 @@ mod util;
 
 use tauri::Manager;
 use tauri::tray::TrayIconBuilder;
-use tauri::image::Image;
 use tauri::menu::{MenuBuilder, MenuItemBuilder};
 
 #[cfg_attr(mobile, tauri::mobile_entry_point)]
 pub fn run() {
     tauri::Builder::default()
-        .plugin(tauri_plugin_updater::Builder::new().build())
-        .plugin(tauri_plugin_process::init())
+        .plugin(tauri_plugin_notification::init())
+        .plugin(tauri_plugin_autostart::init(tauri_plugin_autostart::MacosLauncher::LaunchAgent, None))
         .setup(|app| {
             // Debug logging in dev
             if cfg!(debug_assertions) {
@@ -26,7 +25,7 @@ pub fn run() {
             // app.set_activation_policy(tauri::ActivationPolicy::Accessory);
 
             // Build tray context menu
-            let quit = MenuItemBuilder::with_id("quit", "Quit Claude Config").build(app)?;
+            let quit = MenuItemBuilder::with_id("quit", "Quit Hippo").build(app)?;
             let show = MenuItemBuilder::with_id("show", "Show Window").build(app)?;
             let menu = MenuBuilder::new(app)
                 .item(&show)
@@ -35,9 +34,9 @@ pub fn run() {
                 .build()?;
 
             // Build tray icon
-            let _tray = TrayIconBuilder::new()
+            let _tray = TrayIconBuilder::with_id("main")
                 .icon(app.default_window_icon().unwrap().clone())
-                .tooltip("Claude Config")
+                .tooltip("Hippo")
                 .menu(&menu)
                 .on_menu_event(|app, event| {
                     match event.id().as_ref() {
@@ -68,6 +67,12 @@ pub fn run() {
                 })
                 .build(app)?;
 
+            let handle = app.handle().clone();
+            std::thread::spawn(move || loop {
+                commands::alerts::run_check(&handle);
+                std::thread::sleep(commands::alerts::CHECK_EVERY);
+            });
+
             // Show the window on first launch
             if let Some(window) = app.get_webview_window("main") {
                 let _ = window.show();
@@ -84,20 +89,18 @@ pub fn run() {
             }
         })
         .invoke_handler(tauri::generate_handler![
-            commands::discovery::discover,
+            commands::inventory::inventory,
             commands::files::read_file,
             commands::files::write_file,
+            commands::files::create_config_file,
             commands::files::delete_file,
-            commands::files::delete_skill,
-            commands::settings::read_settings,
-            commands::settings::write_settings,
             commands::memories::get_memories,
             commands::memories::create_memory,
             commands::memories::sync_memory_index,
-            commands::docs::list_docs,
-            commands::sync::export_config,
-            commands::sync::import_config,
-            commands::sync::get_portable_status,
+            commands::unity::share_with_cursor,
+            commands::unity::mirror_rules_to_cursor,
+            commands::alerts::get_alerts,
+            commands::alerts::set_alerts_enabled,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

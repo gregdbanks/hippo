@@ -1,6 +1,5 @@
-pub mod discovery;
-pub mod docs;
+pub mod alerts;
 pub mod files;
+pub mod inventory;
 pub mod memories;
-pub mod settings;
-pub mod sync;
+pub mod unity;
