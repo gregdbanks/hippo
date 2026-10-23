@@ -1,3 +1,5 @@
+<p align="center"><img src="src-tauri/icons/128x128@2x.png" alt="Hippo, a pixel art hippo" width="128" /></p>
+
 # Hippo
 
 A small macOS app that finds every Claude Code and Cursor config file under your home folder, so you can read, edit and add them in one place, and see when they're getting too big to be useful.

@@ -28,6 +28,10 @@ body {
   overflow-y: auto;
 }
 
+.sidebar-brand { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.25rem; }
+.sidebar-brand h2 { margin-bottom: 0; }
+.sidebar-logo { width: 28px; height: 28px; image-rendering: pixelated; }
+
 .sidebar h2 {
   font-size: 1rem;
   color: #fff;
@@ -588,3 +592,4 @@ body {
 .welcome-backdrop { position: fixed; inset: 0; background: rgba(5, 7, 11, 0.65); display: flex; align-items: center; justify-content: center; z-index: 50; padding: 1rem; }
 .welcome { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 12px; padding: 1.5rem; max-width: 460px; }
 .welcome h2 { margin-top: 0; color: #fff; }
+.welcome-logo { width: 64px; height: 64px; image-rendering: pixelated; display: block; margin-bottom: 0.75rem; }

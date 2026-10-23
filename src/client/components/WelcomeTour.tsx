@@ -1,5 +1,6 @@
 import { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import hippoLogo from '../hippo-logo.svg';
 
 const SEEN = 'hippo-tour-seen';
 
@@ -33,6 +34,7 @@ export function WelcomeTour() {
   return (
     <div className="welcome-backdrop" role="dialog" aria-label="Welcome to Hippo">
       <div className="welcome">
+        <img src={hippoLogo} alt="" className="welcome-logo" />
         <h2>Welcome to Hippo</h2>
         <p>Hippo keeps your Claude and Cursor config files in one place, checks them against their size limits, and keeps the two tools in sync.</p>
         <p className="muted small">The name is short for hippocampus, the part of the brain that stores memories. Hippo is the one place for everything your coding tools remember between sessions.</p>

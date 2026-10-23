@@ -10,6 +10,7 @@ import HelpPage from './pages/HelpPage';
 import SkillsPage from './pages/SkillsPage';
 import SearchPage from './pages/SearchPage';
 import GuidesPage from './pages/GuidesPage';
+import hippoLogo from './hippo-logo.svg';
 import MapPage from './pages/MapPage';
 import { WelcomeTour } from './components/WelcomeTour';
 
@@ -28,7 +29,10 @@ export default function App() {
   return (
     <div className="app-layout">
       <aside className="sidebar">
-        <h2>Hippo</h2>
+        <div className="sidebar-brand">
+          <img src={hippoLogo} alt="" className="sidebar-logo" />
+          <h2>Hippo</h2>
+        </div>
         <p className="subtitle">Claude and Cursor config</p>
         <nav>
           <NavLink to="/" end className={navClass}>
