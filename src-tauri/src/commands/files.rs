@@ -75,6 +75,25 @@ pub fn write_config(home: &Path, path: &Path, content: &str, expected_modified: 
     })
 }
 
+pub fn save_with_history(home: &Path, path: &Path, content: &str, expected_modified: Option<&str>, history: Option<&Path>) -> Result<FileWriteResult, String> {
+    if let (Some(history), Some(target)) = (history, resolve(home, path)) {
+        crate::util::history::snapshot(history, &target)?;
+    }
+    write_config(home, path, content, expected_modified)
+}
+
+pub fn delete_with_history(home: &Path, path: &Path, history: Option<&Path>) -> Result<(), String> {
+    if let (Some(history), Some(target)) = (history, resolve(home, path)) {
+        crate::util::history::snapshot(history, &target)?;
+    }
+    delete_config(home, path)
+}
+
+fn history_dir(app: &tauri::AppHandle) -> Option<PathBuf> {
+    use tauri::Manager;
+    app.path().app_data_dir().ok().map(|d| d.join("history"))
+}
+
 pub fn delete_config(home: &Path, path: &Path) -> Result<(), String> {
     if classify(home, path).map(|(_, k)| k) != Some(Kind::Memory) || resolve(home, path).is_none() {
         return Err("Only memory files can be deleted.".to_string());
@@ -169,8 +188,21 @@ pub fn read_file(path: String) -> Result<FileReadResult, String> {
 }
 
 #[tauri::command]
-pub fn write_file(path: String, content: String, expected_modified: Option<String>) -> Result<FileWriteResult, String> {
-    write_config(&home_dir(), Path::new(&path), &content, expected_modified.as_deref())
+pub fn write_file(app: tauri::AppHandle, path: String, content: String, expected_modified: Option<String>) -> Result<FileWriteResult, String> {
+    save_with_history(&home_dir(), Path::new(&path), &content, expected_modified.as_deref(), history_dir(&app).as_deref())
+}
+
+#[tauri::command]
+pub fn list_history(app: tauri::AppHandle, path: String) -> Result<Vec<crate::util::history::Snapshot>, String> {
+    let target = resolve(&home_dir(), Path::new(&path)).ok_or("Not a config file.")?;
+    Ok(history_dir(&app).map(|h| crate::util::history::list(&h, &target)).unwrap_or_default())
+}
+
+#[tauri::command]
+pub fn read_history(app: tauri::AppHandle, path: String, id: String) -> Result<String, String> {
+    let target = resolve(&home_dir(), Path::new(&path)).ok_or("Not a config file.")?;
+    let history = history_dir(&app).ok_or("History folder not found.")?;
+    crate::util::history::read(&history, &target, &id)
 }
 
 #[tauri::command]
@@ -179,8 +211,8 @@ pub fn create_config_file(root: String, kind: NewFileKind, name: String) -> Resu
 }
 
 #[tauri::command]
-pub fn delete_file(path: String) -> Result<FileDeleteResult, String> {
-    delete_config(&home_dir(), Path::new(&path)).map(|_| FileDeleteResult { deleted: true })
+pub fn delete_file(app: tauri::AppHandle, path: String) -> Result<FileDeleteResult, String> {
+    delete_with_history(&home_dir(), Path::new(&path), history_dir(&app).as_deref()).map(|_| FileDeleteResult { deleted: true })
 }
 
 #[cfg(test)]
@@ -399,5 +431,21 @@ mod tests {
         let updated = remove_index_line("- [A](./a.md) - x\n- [B](b.md) - y\n", "a.md");
         assert!(!updated.contains("a.md"));
         assert!(updated.contains("(b.md)"));
+    }
+
+    #[test]
+    fn saving_and_deleting_keep_the_previous_version_in_history() {
+        let h = home();
+        let history = h.root.join("history");
+        let p = put(&h, "app/CLAUDE.md", "before\n");
+        save_with_history(&h.root, &p, "after\n", None, Some(&history)).unwrap();
+        let snaps = crate::util::history::list(&history, &p);
+        assert_eq!(snaps.len(), 1);
+        assert_eq!(crate::util::history::read(&history, &p, &snaps[0].id).unwrap(), "before\n");
+
+        let mem = put(&h, ".claude/projects/-p/memory/a.md", "fact\n");
+        delete_with_history(&h.root, &mem, Some(&history)).unwrap();
+        let snaps = crate::util::history::list(&history, &mem);
+        assert_eq!(crate::util::history::read(&history, &mem, &snaps[0].id).unwrap(), "fact\n");
     }
 }

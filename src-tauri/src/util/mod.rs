@@ -2,6 +2,8 @@ pub mod alerts;
 pub mod budget;
 pub mod config_paths;
 pub mod frontmatter;
+pub mod guides;
+pub mod history;
 pub mod inventory;
 pub mod memory;
 pub mod paths;

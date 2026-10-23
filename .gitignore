@@ -3,3 +3,6 @@ dist/
 .DS_Store
 src-tauri/target/
 Claude Config.app/
+
+.demo/
+src/client/demo/snapshot.json

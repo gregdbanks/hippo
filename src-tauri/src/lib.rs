@@ -1,5 +1,5 @@
 mod commands;
-mod util;
+pub mod util;
 
 use tauri::Manager;
 use tauri::tray::TrayIconBuilder;
@@ -94,6 +94,8 @@ pub fn run() {
             commands::files::write_file,
             commands::files::create_config_file,
             commands::files::delete_file,
+            commands::files::list_history,
+            commands::files::read_history,
             commands::memories::get_memories,
             commands::memories::create_memory,
             commands::memories::sync_memory_index,
@@ -102,6 +104,8 @@ pub fn run() {
             commands::alerts::get_alerts,
             commands::alerts::set_alerts_enabled,
             commands::search::search_configs,
+            commands::guides::list_guides,
+            commands::guides::read_guide,
         ])
         .run(tauri::generate_context!())
         .expect("error while running tauri application");

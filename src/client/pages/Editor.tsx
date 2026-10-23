@@ -5,6 +5,7 @@ import { findFile, useInventory } from '../hooks/useInventory';
 import { Gauge } from '../components/Gauge';
 import { ReferencesPanel } from '../components/ReferencesPanel';
 import { HighlightedEditor } from '../components/HighlightedEditor';
+import { HistoryPanel } from '../components/HistoryPanel';
 import { Link } from 'react-router-dom';
 import type { FileData } from '../lib/types';
 import { KIND_LABEL, LOADING_LABEL, TOOL_LABEL, displayPath, editorLink, findMatches, formatTokens, liveBudget, mirrorSourcePath } from '../lib/format';
@@ -112,11 +113,20 @@ export default function Editor() {
   const matches = findMatches(content, findQuery);
 
   const [scrollKey, setScrollKey] = useState('');
+  const [historyOpen, setHistoryOpen] = useState(false);
+  const [loadedVersion, setLoadedVersion] = useState<string | null>(null);
 
   const showMatch = useCallback((index: number) => {
     setMatchIndex(index);
     setScrollKey(`${index}:${Date.now()}`);
   }, []);
+
+  const findParam = params.get('find');
+  useEffect(() => {
+    if (findParam === null) return;
+    setFindOpen(true);
+    setFindQuery(findParam);
+  }, [findParam]);
 
   useEffect(() => {
     if (!disk || !params.get('find')) return;
@@ -151,6 +161,7 @@ export default function Editor() {
       writeDraft(path, null);
       await load(false);
       await refresh();
+      setLoadedVersion(null);
       setSavedAt(new Date().toLocaleTimeString());
     } catch (err) {
       const message = err instanceof Error ? err.message : String(err);
@@ -159,6 +170,12 @@ export default function Editor() {
     } finally {
       setSaving(false);
     }
+  };
+
+  const loadVersion = (text: string, savedAt: string) => {
+    onChange(text);
+    setLoadedVersion(new Date(savedAt).toLocaleString());
+    setHistoryOpen(false);
   };
 
   const discard = () => {
@@ -211,6 +228,10 @@ export default function Editor() {
         </div>
       )}
 
+      {historyOpen && <HistoryPanel path={path} onLoad={loadVersion} onClose={() => setHistoryOpen(false)} />}
+      {loadedVersion && dirty && (
+        <div className="banner">Showing the version from {loadedVersion}. Save to restore it, or reload to keep the current file.</div>
+      )}
       {budgets.length > 0 && <div className="gauges">{budgets.map(b => <Gauge key={b.label} budget={b} />)}</div>}
       {info && inventory && <ReferencesPanel file={info} inventory={inventory} />}
 
@@ -218,6 +239,7 @@ export default function Editor() {
         <div className="editor-header">
           <span className="file-path">{info ? LOADING_LABEL[info.loading] : ''}</span>
           <button className="btn btn-ghost btn-small" onClick={() => { setFindOpen(true); window.setTimeout(() => findRef.current?.select(), 0); }}>Find (Cmd+F)</button>
+          <button className="btn btn-ghost btn-small" onClick={() => setHistoryOpen(o => !o)}>History</button>
           <span className="badge badge-token">{formatTokens(Math.ceil(content.length / 3.7))} tokens</span>
         </div>
         {findOpen && (

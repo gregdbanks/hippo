@@ -1,3 +1,8 @@
+import { useMemo } from 'react';
+import { useSearchParams } from 'react-router-dom';
+import { TourViewer } from '../components/TourViewer';
+import { loadTours } from '../tours';
+
 const LIMITS = [
   { file: 'CLAUDE.md (global, project, CLAUDE.local.md)', limit: 'Under 200 lines', why: 'Loads every session. Longer files use more context and get followed less reliably.', source: 'https://code.claude.com/docs/en/memory' },
   { file: '.claude/rules/*.md without paths:', limit: 'Under 200 lines', why: 'Loads every session, same as CLAUDE.md. Add paths: to load it only for matching files.', source: 'https://code.claude.com/docs/en/memory' },
@@ -8,10 +13,31 @@ const LIMITS = [
 ];
 
 export default function HelpPage() {
+  const tours = useMemo(() => loadTours(), []);
+  const [params, setParams] = useSearchParams();
+  const active = tours.find(t => t.id === params.get('tour')) ?? null;
+  const close = () => setParams({});
+
   return (
     <>
       <h1>How it works</h1>
-      <p className="page-subtitle">Hippo finds every Claude and Cursor config file under your home folder so you can read, edit and add them in one place.</p>
+      <p className="page-subtitle">Short walkthroughs of the things you'll actually do in Hippo. Each step shows the real screen with the controls numbered.</p>
+      <p className="muted small">Why Hippo: it's short for hippocampus, the part of the brain that stores memories. Claude and Cursor start every session with no memory of the last one, except what their config files tell them. Hippo is the one place to see and fix all of it.</p>
+
+      {active ? <TourViewer key={active.id} tour={active} onClose={close} /> : (
+        <div className="tour-cards">
+          {tours.map(t => (
+            <button key={t.id} className="tour-card" onClick={() => setParams({ tour: t.id })}>
+              <img src={t.steps[0].image} alt="" />
+              <strong>{t.title}</strong>
+              <span className="muted small">{t.summary}</span>
+              <span className="muted small">{t.steps.length} steps</span>
+            </button>
+          ))}
+        </div>
+      )}
+
+      <h2>Reference</h2>
 
       <h2>Where files come from</h2>
       <ul className="help-list">

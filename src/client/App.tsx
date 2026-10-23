@@ -9,6 +9,9 @@ import MemoryBrowser from './pages/MemoryBrowser';
 import HelpPage from './pages/HelpPage';
 import SkillsPage from './pages/SkillsPage';
 import SearchPage from './pages/SearchPage';
+import GuidesPage from './pages/GuidesPage';
+import MapPage from './pages/MapPage';
+import { WelcomeTour } from './components/WelcomeTour';
 
 const navClass = ({ isActive }: { isActive: boolean }) => (isActive ? 'active' : '');
 
@@ -34,12 +37,15 @@ export default function App() {
           <NavLink to="/claude" className={navClass}>Claude</NavLink>
           <NavLink to="/cursor" className={navClass}>Cursor</NavLink>
           <NavLink to="/skills" className={navClass}>Skills</NavLink>
+          <NavLink to="/map" className={navClass}>Where things live</NavLink>
           <NavLink to="/search" className={navClass}>Search</NavLink>
           <div className="section-label">Help</div>
+          <NavLink to="/guides" className={navClass}>Guides</NavLink>
           <NavLink to="/help" className={navClass}>How it works</NavLink>
         </nav>
       </aside>
 
+      <WelcomeTour />
       <main className="main-content">
         <Routes>
           <Route path="/" element={<Overview />} />
@@ -47,8 +53,10 @@ export default function App() {
           <Route path="/cursor" element={<ToolView key="cursor" tool="cursor" />} />
           <Route path="/skills" element={<SkillsPage />} />
           <Route path="/search" element={<SearchPage />} />
+          <Route path="/map" element={<MapPage />} />
           <Route path="/edit" element={<Editor />} />
           <Route path="/memories/:slug" element={<MemoryBrowser />} />
+          <Route path="/guides" element={<GuidesPage />} />
           <Route path="/help" element={<HelpPage />} />
         </Routes>
       </main>

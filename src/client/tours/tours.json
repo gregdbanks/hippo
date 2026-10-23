@@ -1,0 +1,522 @@
+[
+  {
+    "id": "getting-around",
+    "title": "Getting around",
+    "summary": "A one-minute look at each part of Hippo.",
+    "steps": [
+      {
+        "title": "Start on Overview",
+        "text": "Hippo scans every Claude and Cursor config file on your Mac. Anything over or near its size limit shows under Needs attention.",
+        "route": "/",
+        "hotspots": [
+          {
+            "selector": ".summary-grid",
+            "label": "Totals across every project"
+          },
+          {
+            "selector": "h2:has-text('Needs attention')",
+            "label": "Files to fix, worst first"
+          },
+          {
+            "selector": "h2:has-text('Out of sync with Cursor')",
+            "label": "Projects Cursor can't fully see"
+          }
+        ]
+      },
+      {
+        "title": "Claude files",
+        "text": "Every Claude file, global first, then each project. Loads says when Claude reads it, and the gauge shows its size against the limit.",
+        "route": "/claude",
+        "hotspots": [
+          {
+            "selector": "th:has-text('Loads')",
+            "label": "When Claude reads the file"
+          },
+          {
+            "selector": ".gauge-compact",
+            "label": "Size against the limit"
+          },
+          {
+            "selector": ".file-refs",
+            "label": "Skills and docs this file points to"
+          }
+        ]
+      },
+      {
+        "title": "Cursor files",
+        "text": "Cursor's side of the same projects. Not synced means Cursor can't see some of the Claude instructions or rules yet.",
+        "route": "/cursor",
+        "hotspots": [
+          {
+            "selector": ".badge-warn-count",
+            "label": "Needs a click to sync"
+          },
+          {
+            "selector": "text=User Rules",
+            "label": "Cursor's global rules live in its settings"
+          }
+        ]
+      },
+      {
+        "title": "Skills",
+        "text": "Skills are step by step procedures. Only their short description loads every session; the rest loads when the task fits.",
+        "route": "/skills",
+        "hotspots": [
+          {
+            "selector": ".skill-row >> nth=0",
+            "label": "One skill and its size"
+          },
+          {
+            "selector": "text=Used by >> nth=0",
+            "label": "Which configs point to it"
+          }
+        ]
+      },
+      {
+        "title": "Search everything",
+        "text": "Search finds text across every config, skill, rule and memory. Click a line to open the file right there.",
+        "route": "/search",
+        "actions": [
+          {
+            "type": {
+              "selector": ".search-input",
+              "text": "browser"
+            }
+          },
+          {
+            "wait": 600
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".search-input",
+            "label": "Type anything"
+          },
+          {
+            "selector": ".search-hit >> nth=0",
+            "label": "Click to jump to that line"
+          }
+        ]
+      },
+      {
+        "title": "Where things live",
+        "text": "Pick the folder you start a session in to see exactly what loads, from your global folder down to the project.",
+        "route": "/map",
+        "capture": "/map?root={home}/code/storefront",
+        "hotspots": [
+          {
+            "selector": ".map-controls select",
+            "label": "The folder you start in"
+          },
+          {
+            "selector": ".map-total",
+            "label": "Everything that loads before you type"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "what-loads",
+    "title": "See what loads when you start in a folder",
+    "summary": "Use the map to understand global vs project files.",
+    "steps": [
+      {
+        "title": "Choose your starting folder",
+        "text": "Claude and Cursor load different files depending on the folder you open. Pick the one you start in.",
+        "route": "/map",
+        "capture": "/map?root={home}/code/storefront",
+        "hotspots": [
+          {
+            "selector": ".map-controls select",
+            "label": "Starting folder"
+          }
+        ]
+      },
+      {
+        "title": "Global files load first",
+        "text": "Your global CLAUDE.md and every skill's short description load in every session, wherever you start.",
+        "route": "/map",
+        "capture": "/map?root={home}/code/storefront",
+        "hotspots": [
+          {
+            "selector": ".map-kind-global",
+            "label": "~/.claude: applies everywhere"
+          }
+        ]
+      },
+      {
+        "title": "Then each folder on the way down",
+        "text": "Claude also reads the CLAUDE.md in every folder above your project. Folders that load nothing still show, so you can see the whole path.",
+        "route": "/map",
+        "capture": "/map?root={home}/code/storefront",
+        "hotspots": [
+          {
+            "selector": ".map-group:has-text('nothing loads from here') >> nth=0",
+            "label": "Your home folder: nothing here"
+          },
+          {
+            "selector": ".map-group:has(.map-folder-name:text-is('~/code'))",
+            "label": "A parent folder's CLAUDE.md"
+          }
+        ]
+      },
+      {
+        "title": "The project and its memory load last",
+        "text": "The project's own instructions, always-on rules and memory index come last. Click any file to open it.",
+        "route": "/map",
+        "capture": "/map?root={home}/code/storefront",
+        "hotspots": [
+          {
+            "selector": ".map-group:has-text('~/code/storefront') >> nth=0",
+            "label": "The project's own files"
+          },
+          {
+            "selector": ".map-kind-memory",
+            "label": "Claude's memory for this folder"
+          }
+        ]
+      },
+      {
+        "title": "Compare with Cursor",
+        "text": "Switch to Cursor to see what it loads in the same folder. Linking AGENTS.md and mirroring rules makes the two match.",
+        "route": "/map",
+        "capture": "/map?root={home}/code/storefront",
+        "actions": [
+          {
+            "click": "role=radio[name='Cursor']"
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".map-tools",
+            "label": "Switch tools"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "trim-a-file",
+    "title": "Trim a file that's over its limit",
+    "summary": "Move part of a long CLAUDE.md into a rule that only loads when needed.",
+    "steps": [
+      {
+        "title": "Spot the red file",
+        "text": "Red means over the limit. Here the storefront CLAUDE.md is well past the 200 line target, so Claude follows it less reliably.",
+        "route": "/",
+        "hotspots": [
+          {
+            "selector": ".attention-item:has-text('storefront/CLAUDE.md') .gauge",
+            "label": "Lines used vs the limit"
+          }
+        ]
+      },
+      {
+        "title": "Open it",
+        "text": "The gauge updates as you edit, and the note says why the limit exists and where it comes from.",
+        "route": "/claude",
+        "capture": "/edit?path={home}/code/storefront/CLAUDE.md",
+        "hotspots": [
+          {
+            "selector": ".gauges .gauge >> nth=0",
+            "label": "Live size gauge"
+          },
+          {
+            "selector": ".gauge-source >> nth=0",
+            "label": "Where the limit comes from"
+          }
+        ]
+      },
+      {
+        "title": "Find the part to move",
+        "text": "Press Cmd+F and look for a section that only matters for some files. Here, Promotions only matters for the promo code.",
+        "route": "/claude",
+        "capture": "/edit?path={home}/code/storefront/CLAUDE.md",
+        "actions": [
+          {
+            "press": "Meta+f"
+          },
+          {
+            "type": {
+              "selector": ".find-bar input",
+              "text": "## Promotions"
+            }
+          },
+          {
+            "wait": 400
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".find-bar",
+            "label": "Find in this file"
+          },
+          {
+            "selector": ".hl-current",
+            "label": "The section to move"
+          }
+        ]
+      },
+      {
+        "title": "Create a rule for it",
+        "text": "On the Claude page, open the project and add a rule. Paste the section in, and add paths: so it only loads for matching files.",
+        "route": "/claude",
+        "actions": [
+          {
+            "click": ".project-section summary:has-text('~/code/storefront')"
+          },
+          {
+            "click": ".project-section:has-text('~/code/storefront') button:has-text('New rule')"
+          },
+          {
+            "type": {
+              "selector": ".new-file-form input",
+              "text": "promotions"
+            }
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".new-file-form",
+            "label": "Name the new rule"
+          }
+        ]
+      },
+      {
+        "title": "Paste and save",
+        "text": "Save the rule, then cut the section from CLAUDE.md and save that too. The gauge goes green once it's under 200 lines.",
+        "route": "/claude",
+        "actions": [
+          {
+            "click": ".project-section summary:has-text('~/code/storefront')"
+          },
+          {
+            "click": ".project-section:has-text('~/code/storefront') button:has-text('New rule')"
+          },
+          {
+            "type": {
+              "selector": ".new-file-form input",
+              "text": "promotions"
+            }
+          },
+          {
+            "press": "Enter"
+          },
+          {
+            "wait": 600
+          },
+          {
+            "type": {
+              "selector": ".hl-area",
+              "text": "---\npaths:\n  - \"src/promotions/**\"\n---\n\n## Promotions\n\n- Promotions note 1: keep this behavior when touching the promotions code.\n- Promotions note 2: keep this behavior when touching the promotions code.\n- Promotions note 3: keep this behavior when touching the promotions code.\n"
+            }
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".hl-area",
+            "label": "Paste the section here"
+          },
+          {
+            "selector": "button:has-text('Save')",
+            "label": "Save"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "claude-and-cursor",
+    "title": "Make a rule work in Claude and Cursor",
+    "summary": "Write rules once on the Claude side and mirror them to Cursor.",
+    "steps": [
+      {
+        "title": "Rules live on the Claude side",
+        "text": "Write project rules in the project's .claude/rules folder. A rule without paths: loads every session; with paths: only for matching files.",
+        "route": "/claude",
+        "actions": [
+          {
+            "click": ".project-section summary:has-text('~/code/storefront')"
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".project-section:has-text('~/code/storefront') tr:has-text('forms.md')",
+            "label": "Only loads for form files"
+          },
+          {
+            "selector": ".project-section:has-text('~/code/storefront') tr:has-text('style.md')",
+            "label": "Loads every session"
+          }
+        ]
+      },
+      {
+        "title": "Cursor flags what it can't see",
+        "text": "On the Cursor page, a project with Claude rules that Cursor doesn't have yet shows Not synced.",
+        "route": "/cursor",
+        "actions": [
+          {
+            "click": ".project-section summary:has-text('~/code/storefront')"
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".project-section:has-text('~/code/storefront') .badge-warn-count",
+            "label": "Not synced"
+          },
+          {
+            "selector": ".project-section:has-text('~/code/storefront') .sync-panel",
+            "label": "What's missing"
+          }
+        ]
+      },
+      {
+        "title": "Mirror the rules",
+        "text": "Mirror rules to Cursor creates a matching Cursor rule for each Claude rule. paths: becomes Cursor's globs.",
+        "route": "/cursor",
+        "actions": [
+          {
+            "click": ".project-section summary:has-text('~/code/storefront')"
+          },
+          {
+            "click": "button:has-text('Mirror rules to Cursor')"
+          },
+          {
+            "wait": 400
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".sync-panel .success-msg",
+            "label": "Done: one Cursor rule per Claude rule"
+          }
+        ]
+      },
+      {
+        "title": "Keep editing the Claude rule",
+        "text": "From now on, edit only the Claude rule and mirror again. Hippo only updates the copies it made, never Cursor rules you wrote by hand.",
+        "route": "/claude",
+        "capture": "/edit?path={home}/code/storefront/.claude/rules/style.md",
+        "hotspots": [
+          {
+            "selector": ".hl-area",
+            "label": "Edit here, then mirror again"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "undo-an-edit",
+    "title": "Undo a bad edit",
+    "summary": "Bring back an earlier version of any file.",
+    "steps": [
+      {
+        "title": "Open History",
+        "text": "Every save keeps the version before it. Open History from the editor of the file you want to restore.",
+        "route": "/claude",
+        "capture": "/edit?path={home}/code/storefront/CLAUDE.md",
+        "actions": [
+          {
+            "click": "button:has-text('History')"
+          },
+          {
+            "wait": 400
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": "button:has-text('History')",
+            "label": "History"
+          },
+          {
+            "selector": ".history-panel",
+            "label": "The last 20 versions"
+          }
+        ]
+      },
+      {
+        "title": "Load a version",
+        "text": "Loading a version puts it in the editor so you can read it first. Nothing changes on disk yet.",
+        "route": "/claude",
+        "capture": "/edit?path={home}/code/storefront/CLAUDE.md",
+        "actions": [
+          {
+            "click": "button:has-text('History')"
+          },
+          {
+            "wait": 400
+          },
+          {
+            "click": "button:has-text('Load this version') >> nth=0"
+          },
+          {
+            "wait": 400
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".banner:has-text('Showing the version')",
+            "label": "You're looking at the old version"
+          }
+        ]
+      },
+      {
+        "title": "Save to restore it",
+        "text": "Save to put that version back. The version you replaced is kept too, so you can always undo the undo.",
+        "route": "/claude",
+        "capture": "/edit?path={home}/code/storefront/CLAUDE.md",
+        "actions": [
+          {
+            "click": "button:has-text('History')"
+          },
+          {
+            "wait": 400
+          },
+          {
+            "click": "button:has-text('Load this version') >> nth=0"
+          },
+          {
+            "wait": 400
+          }
+        ],
+        "hotspots": [
+          {
+            "selector": ".editor-footer button:has-text('Save')",
+            "label": "Save restores it"
+          }
+        ]
+      }
+    ]
+  },
+  {
+    "id": "alerts",
+    "title": "Stay on top of it with alerts",
+    "summary": "Get notified when a file crosses a limit or a project drifts from Cursor.",
+    "steps": [
+      {
+        "title": "Turn alerts on",
+        "text": "Turn on alerts and Open Hippo at login. Hippo checks every 5 minutes from the menu bar and tells you when something gets worse.",
+        "route": "/",
+        "hotspots": [
+          {
+            "selector": ".alert-settings",
+            "label": "Alerts and launch at login"
+          }
+        ]
+      },
+      {
+        "title": "An alert brings you here",
+        "text": "Each alert matches an item on Overview: what's wrong, how far over, and a click to open the file. You also get one summary a day while something still needs attention.",
+        "route": "/",
+        "hotspots": [
+          {
+            "selector": ".attention-list",
+            "label": "What the alert was about"
+          }
+        ]
+      }
+    ]
+  }
+]

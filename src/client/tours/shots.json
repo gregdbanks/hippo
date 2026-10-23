@@ -1,0 +1,553 @@
+{
+  "getting-around-1": {
+    "hotspots": [
+      {
+        "label": "Totals across every project",
+        "x": 48.08,
+        "y": 29.81,
+        "box": [
+          3.85,
+          18.13,
+          88.46,
+          23.38
+        ]
+      },
+      {
+        "label": "Files to fix, worst first",
+        "x": 48.08,
+        "y": 48.01,
+        "box": [
+          3.85,
+          46.5,
+          88.46,
+          3.02
+        ]
+      },
+      {
+        "label": "Projects Cursor can't fully see",
+        "x": 48.08,
+        "y": 99.76,
+        "box": [
+          3.85,
+          98.25,
+          88.46,
+          3.02
+        ]
+      }
+    ]
+  },
+  "getting-around-2": {
+    "hotspots": [
+      {
+        "label": "When Claude reads the file",
+        "x": 59.24,
+        "y": 29.61,
+        "box": [
+          51.86,
+          26.3,
+          14.74,
+          6.63
+        ]
+      },
+      {
+        "label": "Size against the limit",
+        "x": 73.51,
+        "y": 36.86,
+        "box": [
+          68.05,
+          35.46,
+          10.93,
+          2.81
+        ]
+      },
+      {
+        "label": "Skills and docs this file points to",
+        "x": 27.86,
+        "y": 40.73,
+        "box": [
+          5.29,
+          39.25,
+          45.13,
+          2.95
+        ]
+      }
+    ]
+  },
+  "getting-around-3": {
+    "hotspots": [
+      {
+        "label": "Needs a click to sync",
+        "x": 37.72,
+        "y": 75.55,
+        "box": [
+          29.08,
+          73.93,
+          17.28,
+          3.25
+        ]
+      },
+      {
+        "label": "Cursor's global rules live in its settings",
+        "x": 48.08,
+        "y": 13.13,
+        "box": [
+          3.85,
+          9.84,
+          88.46,
+          6.56
+        ]
+      }
+    ]
+  },
+  "getting-around-4": {
+    "hotspots": [
+      {
+        "label": "One skill and its size",
+        "x": 48.08,
+        "y": 38.43,
+        "box": [
+          3.85,
+          26.3,
+          88.46,
+          24.26
+        ]
+      },
+      {
+        "label": "Which configs point to it",
+        "x": 48.08,
+        "y": 44.73,
+        "box": [
+          5.87,
+          43.26,
+          84.42,
+          2.92
+        ]
+      }
+    ]
+  },
+  "getting-around-5": {
+    "hotspots": [
+      {
+        "label": "Type anything",
+        "x": 28.85,
+        "y": 22.03,
+        "box": [
+          3.85,
+          18.13,
+          50,
+          7.81
+        ]
+      },
+      {
+        "label": "Click to jump to that line",
+        "x": 48.08,
+        "y": 42.41,
+        "box": [
+          5.87,
+          38.98,
+          84.42,
+          6.85
+        ]
+      }
+    ]
+  },
+  "getting-around-6": {
+    "hotspots": [
+      {
+        "label": "The folder you start in",
+        "x": 24.22,
+        "y": 27.63,
+        "box": [
+          3.85,
+          25.03,
+          40.75,
+          5.19
+        ]
+      },
+      {
+        "label": "Everything that loads before you type",
+        "x": 48.08,
+        "y": 33.78,
+        "box": [
+          3.85,
+          32.09,
+          88.46,
+          3.38
+        ]
+      }
+    ]
+  },
+  "what-loads-1": {
+    "hotspots": [
+      {
+        "label": "Starting folder",
+        "x": 24.22,
+        "y": 27.63,
+        "box": [
+          3.85,
+          25.03,
+          40.75,
+          5.19
+        ]
+      }
+    ]
+  },
+  "what-loads-2": {
+    "hotspots": [
+      {
+        "label": "~/.claude: applies everywhere",
+        "x": 48.08,
+        "y": 47.37,
+        "box": [
+          3.85,
+          37.34,
+          88.46,
+          20.05
+        ]
+      }
+    ]
+  },
+  "what-loads-3": {
+    "hotspots": [
+      {
+        "label": "Your home folder: nothing here",
+        "x": 48.08,
+        "y": 60.92,
+        "box": [
+          3.85,
+          58.39,
+          88.46,
+          5.05
+        ]
+      },
+      {
+        "label": "A parent folder's CLAUDE.md",
+        "x": 49.28,
+        "y": 68.84,
+        "box": [
+          6.25,
+          64.44,
+          86.06,
+          8.8
+        ]
+      }
+    ]
+  },
+  "what-loads-4": {
+    "hotspots": [
+      {
+        "label": "The project's own files",
+        "x": 50.48,
+        "y": 80.51,
+        "box": [
+          8.65,
+          74.24,
+          83.65,
+          12.55
+        ]
+      },
+      {
+        "label": "Claude's memory for this folder",
+        "x": 48.08,
+        "y": 92.19,
+        "box": [
+          3.85,
+          87.79,
+          88.46,
+          8.8
+        ]
+      }
+    ]
+  },
+  "what-loads-5": {
+    "hotspots": [
+      {
+        "label": "Switch tools",
+        "x": 54.48,
+        "y": 27.88,
+        "box": [
+          46.51,
+          25.54,
+          15.94,
+          4.67
+        ]
+      }
+    ]
+  },
+  "trim-a-file-1": {
+    "hotspots": [
+      {
+        "label": "Lines used vs the limit",
+        "x": 48.08,
+        "y": 67.98,
+        "box": [
+          5.87,
+          58.39,
+          84.42,
+          19.17
+        ]
+      }
+    ]
+  },
+  "trim-a-file-2": {
+    "hotspots": [
+      {
+        "label": "Live size gauge",
+        "x": 48.08,
+        "y": 31.09,
+        "box": [
+          3.85,
+          21.5,
+          88.46,
+          19.17
+        ]
+      },
+      {
+        "label": "Where the limit comes from",
+        "x": 48.08,
+        "y": 37.36,
+        "box": [
+          5.87,
+          36.05,
+          84.42,
+          2.63
+        ]
+      }
+    ]
+  },
+  "trim-a-file-3": {
+    "hotspots": [
+      {
+        "label": "Find in this file",
+        "x": 48.08,
+        "y": 46.24,
+        "box": [
+          3.94,
+          43.77,
+          88.27,
+          4.94
+        ]
+      },
+      {
+        "label": "The section to move",
+        "x": 12.72,
+        "y": 68.09,
+        "box": [
+          5.87,
+          66.52,
+          13.71,
+          3.13
+        ]
+      }
+    ]
+  },
+  "trim-a-file-4": {
+    "hotspots": [
+      {
+        "label": "Name the new rule",
+        "x": 24.58,
+        "y": 89.82,
+        "box": [
+          5.87,
+          84.27,
+          37.43,
+          11.11
+        ]
+      }
+    ]
+  },
+  "trim-a-file-5": {
+    "hotspots": [
+      {
+        "label": "Paste the section here",
+        "x": 48.08,
+        "y": 51.8,
+        "box": [
+          3.94,
+          26.8,
+          88.27,
+          50
+        ]
+      },
+      {
+        "label": "Save",
+        "x": 9.59,
+        "y": 84.14,
+        "box": [
+          5.87,
+          81.3,
+          7.46,
+          5.69
+        ]
+      }
+    ]
+  },
+  "claude-and-cursor-1": {
+    "hotspots": [
+      {
+        "label": "Only loads for form files",
+        "x": 48.08,
+        "y": 50.04,
+        "box": [
+          5.87,
+          44.69,
+          84.42,
+          10.7
+        ]
+      },
+      {
+        "label": "Loads every session",
+        "x": 48.08,
+        "y": 60.49,
+        "box": [
+          5.87,
+          55.39,
+          84.42,
+          10.21
+        ]
+      }
+    ]
+  },
+  "claude-and-cursor-2": {
+    "hotspots": [
+      {
+        "label": "Not synced",
+        "x": 30.33,
+        "y": 91.55,
+        "box": [
+          25.9,
+          89.93,
+          8.85,
+          3.25
+        ]
+      },
+      {
+        "label": "What's missing",
+        "x": 48.08,
+        "y": 101.05,
+        "box": [
+          5.87,
+          95.05,
+          84.42,
+          12
+        ]
+      }
+    ]
+  },
+  "claude-and-cursor-3": {
+    "hotspots": [
+      {
+        "label": "Done: one Cursor rule per Claude rule",
+        "x": 48.08,
+        "y": 54.92,
+        "box": [
+          7.5,
+          52.08,
+          81.15,
+          5.67
+        ]
+      }
+    ]
+  },
+  "claude-and-cursor-4": {
+    "hotspots": [
+      {
+        "label": "Edit here, then mirror again",
+        "x": 48.08,
+        "y": 74.97,
+        "box": [
+          3.94,
+          49.97,
+          88.27,
+          50
+        ]
+      }
+    ]
+  },
+  "undo-an-edit-1": {
+    "hotspots": [
+      {
+        "label": "History",
+        "x": 62.05,
+        "y": 92.26,
+        "box": [
+          58.09,
+          89.92,
+          7.93,
+          4.67
+        ]
+      },
+      {
+        "label": "The last 20 versions",
+        "x": 48.08,
+        "y": 35.47,
+        "box": [
+          3.85,
+          21.5,
+          88.46,
+          27.95
+        ]
+      }
+    ]
+  },
+  "undo-an-edit-2": {
+    "hotspots": [
+      {
+        "label": "You're looking at the old version",
+        "x": 48.08,
+        "y": 25.09,
+        "box": [
+          3.85,
+          21.5,
+          88.46,
+          7.19
+        ]
+      }
+    ]
+  },
+  "undo-an-edit-3": {
+    "hotspots": [
+      {
+        "label": "Save restores it",
+        "x": 9.59,
+        "y": 90.18,
+        "box": [
+          5.87,
+          87.34,
+          7.46,
+          5.69
+        ]
+      }
+    ]
+  },
+  "alerts-1": {
+    "hotspots": [
+      {
+        "label": "Alerts and launch at login",
+        "x": 48.08,
+        "y": 49.99,
+        "box": [
+          3.85,
+          40.84,
+          88.46,
+          18.3
+        ]
+      }
+    ]
+  },
+  "alerts-2": {
+    "hotspots": [
+      {
+        "label": "What the alert was about",
+        "x": 48.08,
+        "y": 72.32,
+        "box": [
+          3.85,
+          51.39,
+          88.46,
+          41.86
+        ]
+      }
+    ]
+  }
+}

@@ -669,6 +669,51 @@ fn skill_listing_tokens(path: &Path) -> usize {
     crate::util::tokens::estimate_tokens(listing.trim())
 }
 
+const MAX_IMPORT_HOPS: usize = 4;
+
+fn strip_code(content: &str) -> String {
+    use std::sync::OnceLock;
+    static PATTERNS: OnceLock<(regex::Regex, regex::Regex)> = OnceLock::new();
+    let (fenced, inline) = PATTERNS.get_or_init(|| {
+        (regex::Regex::new(r"(?s)```.*?```").expect("valid pattern"), regex::Regex::new(r"`[^`\n]*`").expect("valid pattern"))
+    });
+    inline.replace_all(&fenced.replace_all(content, ""), "").to_string()
+}
+
+fn imports_of(home: &Path, file: &Path) -> Vec<PathBuf> {
+    use std::sync::OnceLock;
+    static IMPORT: OnceLock<regex::Regex> = OnceLock::new();
+    let re = IMPORT.get_or_init(|| regex::Regex::new(r"(?m)(?:^|\s)@([~\w./-]+)").expect("valid pattern"));
+    let Ok(content) = std::fs::read_to_string(file) else { return Vec::new() };
+    let dir = file.parent().unwrap_or(home);
+    re.captures_iter(&strip_code(&content))
+        .map(|c| c[1].trim_end_matches(['.', ',', ':', ';']).to_string())
+        .map(|t| match t.strip_prefix("~/") { Some(rest) => home.join(rest), None => dir.join(t) })
+        .filter(|p| p.is_file())
+        .collect()
+}
+
+fn push_imports(session: &mut SessionLoad, home: &Path) {
+    let mut frontier: Vec<PathBuf> = session.items.iter().map(|i| PathBuf::from(&i.path)).collect();
+    for _ in 0..MAX_IMPORT_HOPS {
+        let mut next = Vec::new();
+        for file in &frontier {
+            for imported in imports_of(home, file) {
+                let shown = imported.canonicalize().unwrap_or(imported.clone());
+                if session.items.iter().any(|i| Path::new(&i.path).canonicalize().map(|c| c == shown).unwrap_or(false)) {
+                    continue;
+                }
+                push(session, home, &imported, "imported:", read_tokens(&imported));
+                next.push(imported);
+            }
+        }
+        if next.is_empty() {
+            break;
+        }
+        frontier = next;
+    }
+}
+
 fn push(session: &mut SessionLoad, home: &Path, path: &Path, label: &str, tokens: usize) {
     let path_str = path.to_string_lossy().to_string();
     if session.items.iter().any(|i| i.path == path_str) {
@@ -699,6 +744,7 @@ fn claude_session(home: &Path, root: &Path, global: &[ConfigFile], files: &[Conf
     for f in files.iter().filter(|f| f.tool == Tool::Claude && f.kind == Kind::Rule && f.loading == Loading::Always) {
         push(&mut s, home, Path::new(&f.path), "", f.tokens);
     }
+    push_imports(&mut s, home);
     for f in files.iter().filter(|f| f.kind == Kind::MemoryIndex) {
         push(&mut s, home, Path::new(&f.path), "first 200 lines of", memory_index_loaded_tokens(Path::new(&f.path)));
     }
@@ -1087,5 +1133,39 @@ mod tests {
         let refs: Vec<&str> = file(&inv.claude_global, ".claude/CLAUDE.md").references.iter().map(|r| r.label.as_str()).collect();
         assert_eq!(refs.len(), 2, "{:?}", refs);
         assert!(file(&inv.claude_global, ".claude/CLAUDE.md").references.iter().all(|r| r.kind == RefKind::Skill));
+    }
+
+    #[test]
+    fn imported_files_count_toward_the_claude_session() {
+        let h = Home::new();
+        h.write("app/CLAUDE.md", "@AGENTS.md\n");
+        h.write("app/AGENTS.md", "shared instructions\n@docs/extra.md\n");
+        h.write("app/docs/extra.md", "more\n");
+        h.write("app/docs/unused.md", "never imported\n");
+        let p = h.project("app");
+        let paths: Vec<&str> = p.claude_session.items.iter().map(|i| i.path.as_str()).collect();
+        assert!(paths.iter().any(|x| x.ends_with("app/AGENTS.md")), "{:?}", paths);
+        assert!(paths.iter().any(|x| x.ends_with("app/docs/extra.md")), "{:?}", paths);
+        assert!(!paths.iter().any(|x| x.ends_with("unused.md")));
+        let label = &p.claude_session.items.iter().find(|i| i.path.ends_with("extra.md")).unwrap().label;
+        assert!(label.starts_with("imported:"), "{}", label);
+    }
+
+    #[test]
+    fn imports_inside_code_are_ignored_and_depth_is_limited() {
+        let h = Home::new();
+        h.write("app/CLAUDE.md", "Run `@docs/code.md` here.\n```\n@docs/fenced.md\n```\n@docs/a.md\n");
+        h.write("app/docs/code.md", "x\n");
+        h.write("app/docs/fenced.md", "x\n");
+        h.write("app/docs/a.md", "@b.md\n");
+        h.write("app/docs/b.md", "@c.md\n");
+        h.write("app/docs/c.md", "@d.md\n");
+        h.write("app/docs/d.md", "@e.md\n");
+        h.write("app/docs/e.md", "too deep\n");
+        let p = h.project("app");
+        let has = |name: &str| p.claude_session.items.iter().any(|i| i.path.ends_with(name));
+        assert!(!has("code.md") && !has("fenced.md"));
+        assert!(has("a.md") && has("b.md") && has("c.md") && has("d.md"));
+        assert!(!has("e.md"));
     }
 }
