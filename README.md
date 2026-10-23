@@ -54,8 +54,8 @@ Then open `http://localhost:5174/demo/index.html`. `npm run screenshots` retakes
 You need macOS, [Node.js](https://nodejs.org) 18 or newer, and [Rust](https://rustup.rs).
 
 ```bash
-git clone https://github.com/gregdbanks/claude-config-ui.git
-cd claude-config-ui
+git clone https://github.com/gregdbanks/hippo.git
+cd hippo
 npm install
 npm run build
 ```
