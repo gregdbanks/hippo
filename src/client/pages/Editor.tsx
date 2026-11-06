@@ -6,6 +6,8 @@ import { Gauge } from '../components/Gauge';
 import { ReferencesPanel } from '../components/ReferencesPanel';
 import { HighlightedEditor } from '../components/HighlightedEditor';
 import { HistoryPanel } from '../components/HistoryPanel';
+import { SettingsView } from '../components/SettingsView';
+import { parseSettings } from '../lib/settings';
 import { Link } from 'react-router-dom';
 import type { FileData } from '../lib/types';
 import { KIND_LABEL, LOADING_LABEL, TOOL_LABEL, displayPath, editorLink, findMatches, formatTokens, liveBudget, mirrorSourcePath } from '../lib/format';
@@ -69,6 +71,7 @@ export default function Editor() {
   const [findOpen, setFindOpen] = useState(params.get('find') !== null);
   const [findQuery, setFindQuery] = useState(params.get('find') ?? '');
   const [matchIndex, setMatchIndex] = useState(0);
+  const [view, setView] = useState<'sections' | 'json'>(params.get('find') !== null ? 'json' : 'sections');
   const textareaRef = useRef<HTMLTextAreaElement>(null);
   const findRef = useRef<HTMLInputElement>(null);
   const startLine = Number(params.get('line') ?? '0');
@@ -102,6 +105,7 @@ export default function Editor() {
     const onKey = (e: KeyboardEvent) => {
       if ((e.metaKey || e.ctrlKey) && e.key.toLowerCase() === 'f') {
         e.preventDefault();
+        setView('json');
         setFindOpen(true);
         window.setTimeout(() => findRef.current?.select(), 0);
       }
@@ -146,6 +150,8 @@ export default function Editor() {
   const dirty = content !== disk.content;
   const isSettings = info?.kind === 'settings';
   const badJson = isSettings ? jsonProblem(content) : null;
+  const settings = isSettings ? parseSettings(content) : null;
+  const showSections = isSettings && view === 'sections' && settings !== null;
   const budgets = (info?.budgets ?? []).map(b => liveBudget(b, content));
 
   const onChange = (text: string) => {
@@ -238,11 +244,17 @@ export default function Editor() {
       <div className="editor-container">
         <div className="editor-header">
           <span className="file-path">{info ? LOADING_LABEL[info.loading] : ''}</span>
-          <button className="btn btn-ghost btn-small" onClick={() => { setFindOpen(true); window.setTimeout(() => findRef.current?.select(), 0); }}>Find (Cmd+F)</button>
+          {isSettings && (
+            <div className="view-tabs" role="tablist">
+              <button role="tab" aria-selected={view === 'sections'} className={view === 'sections' ? 'active' : ''} onClick={() => setView('sections')} disabled={!settings}>Sections</button>
+              <button role="tab" aria-selected={view === 'json'} className={view === 'json' ? 'active' : ''} onClick={() => setView('json')}>JSON</button>
+            </div>
+          )}
+          <button className="btn btn-ghost btn-small" onClick={() => { setView('json'); setFindOpen(true); window.setTimeout(() => findRef.current?.select(), 0); }}>Find (Cmd+F)</button>
           <button className="btn btn-ghost btn-small" onClick={() => setHistoryOpen(o => !o)}>History</button>
           <span className="badge badge-token">{formatTokens(Math.ceil(content.length / 3.7))} tokens</span>
         </div>
-        {findOpen && (
+        {findOpen && !showSections && (
           <div className="find-bar">
             <input
               ref={findRef}
@@ -261,14 +273,16 @@ export default function Editor() {
             <button className="btn btn-ghost btn-small" onClick={() => setFindOpen(false)}>Close</button>
           </div>
         )}
-        <HighlightedEditor
-          value={content}
-          onChange={onChange}
-          matches={findOpen ? matches : []}
-          current={matchIndex}
-          scrollKey={scrollKey}
-          areaRef={textareaRef}
-        />
+        {showSections && settings ? <SettingsView settings={settings} text={content} onChange={onChange} /> : (
+          <HighlightedEditor
+            value={content}
+            onChange={onChange}
+            matches={findOpen ? matches : []}
+            current={matchIndex}
+            scrollKey={scrollKey}
+            areaRef={textareaRef}
+          />
+        )}
         <div className="editor-footer">
           <div className="row">
             <button className="btn btn-primary" onClick={save} disabled={saving || !dirty || !!badJson}>

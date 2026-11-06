@@ -38,7 +38,21 @@ write('.claude/CLAUDE.md', `# Global rules
 - Short. No preamble or recap.
 - Always use \`/investigating-bugs\` before diagnosing a bug.
 `);
-write('.claude/settings.json', JSON.stringify({ permissions: { allow: ['Read', 'Grep'], ask: ['Bash(git push*)'], deny: ['Bash(git push --force *)'] } }, null, 2) + '\n');
+write('.claude/settings.json', JSON.stringify({
+  $schema: 'https://json.schemastore.org/claude-code-settings.json',
+  permissions: {
+    allow: ['Read', 'Grep', 'Glob', 'Bash(npm run test:*)', 'Bash(npm run lint)', 'WebFetch(domain:docs.northwind.example)'],
+    ask: ['Bash(git push*)', 'Bash(npm publish*)'],
+    deny: ['Bash(git push --force *)', 'Bash(git reset --hard*)', 'Bash(rm -rf *)', 'Bash(curl * | sh)', 'Read(./.env)'],
+  },
+  hooks: { PostToolUse: [{ matcher: 'Edit|Write', hooks: [{ type: 'command', command: 'npm run lint -- --fix' }] }] },
+  env: { NODE_ENV: 'development' },
+  enabledPlugins: { 'storybook@northwind-tools': true, 'figma@claude-plugins-official': false },
+  statusLine: { type: 'command', command: '~/.claude/statusline.sh' },
+  effortLevel: 'high',
+  alwaysThinkingEnabled: true,
+  editorMode: 'vim',
+}, null, 2) + '\n');
 
 const skill = (name, description, body) => write(`.claude/skills/${name}/SKILL.md`, `---\nname: ${name}\ndescription: ${description}\n---\n\n${body}\n`);
 skill('browser-testing', 'Use whenever testing anything a user can see in the storefront or mobile app. Covers the dev server, light and dark mode, phone width and what counts as a real repro.',

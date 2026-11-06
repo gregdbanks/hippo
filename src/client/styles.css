@@ -593,3 +593,55 @@ body {
 .welcome { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 12px; padding: 1.5rem; max-width: 460px; }
 .welcome h2 { margin-top: 0; color: #fff; }
 .welcome-logo { width: 64px; height: 64px; image-rendering: pixelated; display: block; margin-bottom: 0.75rem; }
+
+.view-tabs { display: inline-flex; background: #13171f; border: 1px solid #2a2f3e; border-radius: 6px; padding: 2px; margin-left: auto; margin-right: 0.5rem; }
+.view-tabs button { all: unset; cursor: pointer; padding: 0.25rem 0.75rem; border-radius: 4px; font-size: 0.78rem; color: #8b8fa3; }
+.view-tabs button.active { background: #252a3a; color: #fff; }
+.view-tabs button:disabled { cursor: not-allowed; opacity: 0.4; }
+
+.settings-view { background: #13171f; padding: 1rem; display: grid; gap: 1rem; }
+.settings-section { background: #1a1f2e; border: 1px solid #2a2f3e; border-radius: 8px; padding: 1rem 1.1rem; }
+.settings-section-head { display: flex; align-items: center; gap: 0.6rem; margin-bottom: 0.85rem; padding-bottom: 0.6rem; border-bottom: 1px solid #2a2f3e; }
+.settings-section-head h3 { margin: 0; font-size: 0.95rem; color: #fff; }
+.settings-section-head .muted { margin-left: auto; }
+
+.rule-columns { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 0.75rem; }
+.rule-column { border: 1px solid #2a2f3e; border-top: 3px solid var(--rule-color); border-radius: 6px; padding: 0.75rem; background: #161b27; min-width: 0; }
+.rule-allow { --rule-color: var(--level-ok); --rule-tint: rgba(39, 174, 96, 0.12); }
+.rule-ask { --rule-color: var(--level-warn); --rule-tint: rgba(243, 156, 18, 0.12); }
+.rule-deny { --rule-color: var(--level-over); --rule-tint: rgba(231, 76, 60, 0.12); }
+.rule-column-head { display: flex; align-items: center; gap: 0.5rem; margin-bottom: 0.6rem; flex-wrap: wrap; }
+.rule-column-head strong { color: var(--rule-color); font-size: 0.85rem; }
+.rule-group { margin-bottom: 0.6rem; }
+.rule-group-label { font-size: 0.7rem; text-transform: uppercase; letter-spacing: 0.05em; color: #8b8fa3; margin-bottom: 0.3rem; }
+.rule-chips { display: flex; flex-wrap: wrap; gap: 0.3rem; }
+.rule-chip { display: inline-flex; align-items: center; gap: 0.3rem; max-width: 100%; background: var(--rule-tint); color: #d5d8e0; border-radius: 4px; padding: 0.15rem 0.2rem 0.15rem 0.45rem; font-size: 0.72rem; }
+.rule-chip { overflow-wrap: anywhere; }
+.rule-chip button { all: unset; cursor: pointer; color: #8b8fa3; padding: 0 0.25rem; line-height: 1; }
+.rule-chip button:hover { color: var(--level-over); }
+.rule-add { display: flex; gap: 0.4rem; margin-top: 0.6rem; }
+.rule-add .settings-input { flex: 1; min-width: 0; }
+
+.settings-input { margin: 0 !important; height: auto !important; background: #13171f !important; border: 1px solid #2a2f3e !important; color: #c5c8d0 !important; padding: 0.3rem 0.5rem !important; border-radius: 4px !important; font-size: 0.8rem !important; width: auto; }
+.settings-row .settings-input { width: 16rem; max-width: 100%; }
+
+.settings-rows { display: grid; }
+.settings-row { display: flex; justify-content: space-between; align-items: center; gap: 1rem; padding: 0.55rem 0; border-bottom: 1px solid #222838; font-size: 0.85rem; }
+.settings-row:last-child { border-bottom: none; }
+.settings-row-top { align-items: flex-start; }
+.settings-code { display: grid; gap: 0.25rem; justify-items: end; min-width: 0; }
+.settings-code code { font-size: 0.75rem; overflow-wrap: anywhere; }
+.settings-tag { margin-left: 0.35rem; }
+
+.settings-toggle { all: unset; cursor: pointer; flex: none; width: 34px; height: 18px; border-radius: 99px; background: #2a2f3e; position: relative; transition: background 0.15s; }
+.settings-toggle span { position: absolute; top: 2px; left: 2px; width: 14px; height: 14px; border-radius: 50%; background: #8b8fa3; transition: all 0.15s; }
+.settings-toggle.on { background: rgba(39, 174, 96, 0.5); }
+.settings-toggle.on span { left: 18px; background: #fff; }
+
+.settings-list { margin: 0; padding-left: 1.1rem; font-size: 0.8rem; display: grid; gap: 0.3rem; }
+.settings-list li { list-style: disc; margin: 0; }
+.settings-json { margin: 0; font-size: 0.75rem; background: #13171f; padding: 0.6rem; border-radius: 4px; white-space: pre-wrap; overflow-wrap: anywhere; }
+
+@media (max-width: 900px) { .rule-columns { grid-template-columns: 1fr; } }
+.settings-input { line-height: 1.4 !important; min-height: 0 !important; }
+.rule-column-head .muted { flex-basis: 100%; }
